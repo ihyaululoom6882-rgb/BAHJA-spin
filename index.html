@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="ml">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BAHJA-26 - Team Selector</title>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
+    body {
+      background: linear-gradient(135deg, #1e053b, #110326);
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+    h1 { margin-top: 10px; font-size: 2.5rem; color: #ffcc00; text-shadow: 0 0 12px rgba(255, 204, 0, 0.6); text-align: center; }
+    p.subtitle { margin-bottom: 20px; color: #d1d5db; font-size: 1.1rem; }
+    
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      gap: 30px;
+      max-width: 1000px;
+      width: 100%;
+    }
+
+    .wheel-box {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .pointer {
+      position: absolute;
+      top: -15px;
+      z-index: 10;
+      width: 0;
+      height: 0;
+      border-left: 20px solid transparent;
+      border-right: 20px solid transparent;
+      border-top: 35px solid #ff0055;
+      filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5));
+    }
+
+    canvas {
+      border-radius: 50%;
+      box-shadow: 0 0 25px rgba(255, 204, 0, 0.3);
+      background: #2a0845;
+    }
+
+    .controls {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      padding: 25px;
+      border-radius: 15px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      width: 320px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    textarea {
+      width: 100%;
+      height: 120px;
+      background: #0d021a;
+      color: #fff;
+      border: 1px solid #441a70;
+      border-radius: 8px;
+      padding: 10px;
+      font-size: 1rem;
+      resize: none;
+    }
+
+    button {
+      background: linear-gradient(45deg, #ff0055, #ffcc00);
+      border: none;
+      color: #000;
+      font-weight: bold;
+      font-size: 1.2rem;
+      padding: 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    button:hover { transform: scale(1.03); }
+    
+    .winner-modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.85);
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+    }
+
+    .winner-card {
+      background: #2a0845;
+      padding: 40px;
+      border-radius: 20px;
+      text-align: center;
+      border: 2px solid #ffcc00;
+      box-shadow: 0 0 30px #ffcc00;
+    }
+
+    .winner-card h2 { color: #ffcc00; margin-bottom: 15px; }
+    .winner-card h1 { color: #fff; font-size: 3rem; margin-bottom: 25px; }
+    .winner-card button { font-size: 1rem; padding: 10px 25px; }
+  </style>
+</head>
+<body>
+
+  <h1>🎨 BAHJA-26 🎨</h1>
+  <p class="subtitle">DARS Students Art Fest - Team Selection Wheel</p>
+
+  <div class="container">
+    <div class="wheel-box">
+      <div class="pointer"></div>
+      <canvas id="wheel" width="400" height="400"></canvas>
+    </div>
+
+    <div class="controls">
+      <h3>Teams List</h3>
+      <textarea id="teamsInput">ESPERENZA&#10;LUMINOSA&#10;GLORIOSA</textarea>
+      <button id="spinBtn" onclick="spin()">SPIN NOW 🎡</button>
+    </div>
+  </div>
+
+  <div class="winner-modal" id="winnerModal">
+    <div class="winner-card">
+      <h2>🎉 SELECTED TEAM 🎉</h2>
+      <h1 id="winnerName">Team Name</h1>
+      <button onclick="closeModal()">Close</button>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('wheel');
+    const ctx = canvas.getContext('2d');
+    const colors = ['#FF5733', '#FF33F3', '#00FFFF', '#33FF57', '#F3FF33', '#3357FF'];
+    
+    let teams = [];
+    let startAngle = 0;
+    let arc = 0;
+    let spinTimeout = null;
+    let spinAngleStart = 10;
+    let spinTime = 0;
+    let spinTimeTotal = 0;
+    let lastAngleIndex = -1;
+
+    // Web Audio API Context
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    function playTickSound() {
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.05);
+      
+      gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
+      
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.05);
+    }
+
+    function playWhistleSound() {
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(1800, audioCtx.currentTime);
+      osc.frequency.linearRampToValueAtTime(2400, audioCtx.currentTime + 0.15);
+      osc.frequency.linearRampToValueAtTime(1800, audioCtx.currentTime + 0.3);
+      
+      gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+      
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.4);
+    }
+
+    function getTeams() {
+      const text = document.getElementById('teamsInput').value;
+      teams = text.split('\n').map(t => t.trim()).filter(t => t.length > 0);
+      arc = Math.PI / (teams.length / 2);
+      drawWheel();
+    }
+
+    function drawWheel() {
+      if (teams.length === 0) return;
+      ctx.clearRect(0, 0, 400, 400);
+
+      const outsideRadius = 180;
+      const textRadius = 120;
+      const insideRadius = 40;
+
+      for (let i = 0; i < teams.length; i++) {
+        const angle = startAngle + i * arc;
+        ctx.fillStyle = colors[i % colors.length];
+
+        ctx.beginPath();
+        ctx.arc(200, 200, outsideRadius, angle, angle + arc, false);
+        ctx.arc(200, 200, insideRadius, angle + arc, angle, true);
+        ctx.stroke();
+        ctx.fill();
+
+        ctx.save();
+        ctx.fillStyle = "#000";
+        ctx.font = "bold 18px Poppins, sans-serif";
+        ctx.translate(200 + Math.cos(angle + arc / 2) * textRadius, 
+                      200 + Math.sin(angle + arc / 2) * textRadius);
+        ctx.rotate(angle + arc / 2 + Math.PI / 2);
+        const text = teams[i];
+        ctx.fillText(text, -ctx.measureText(text).width / 2, 0);
+        ctx.restore();
+      }
+    }
+
+    function rotateWheel() {
+      spinTime += 30;
+      if (spinTime >= spinTimeTotal) {
+        stopRotateWheel();
+        return;
+      }
+      const spinAngle = spinAngleStart - easeOut(spinTime, 0, spinAngleStart, spinTimeTotal);
+      startAngle += (spinAngle * Math.PI / 180);
+      drawWheel();
+
+      const degrees = startAngle * 180 / Math.PI + 90;
+      const arcd = arc * 180 / Math.PI;
+      const currentIdx = Math.floor((360 - degrees % 360) / arcd);
+      if (currentIdx !== lastAngleIndex) {
+        playTickSound();
+        lastAngleIndex = currentIdx;
+      }
+
+      spinTimeout = setTimeout(rotateWheel, 30);
+    }
+
+    function stopRotateWheel() {
+      clearTimeout(spinTimeout);
+      const degrees = startAngle * 180 / Math.PI + 90;
+      const arcd = arc * 180 / Math.PI;
+      const index = Math.floor((360 - degrees % 360) / arcd);
+      
+      const winner = teams[(index + teams.length) % teams.length];
+      document.getElementById('winnerName').innerText = winner;
+      document.getElementById('winnerModal').style.display = 'flex';
+      
+      playWhistleSound();
+      confetti({ particleCount: 150, spread: 90, origin: { y: 0.6 } });
+    }
+
+    function easeOut(t, b, c, d) {
+      const ts = (t /= d) * t;
+      const tc = ts * t;
+      return b + c * (tc + -3 * ts + 3 * t);
+    }
+
+    function spin() {
+      if (teams.length < 2) {
+        alert("At least 2 teams enter cheyyuk!");
+        return;
+      }
+      spinAngleStart = Math.random() * 10 + 10;
+      spinTime = 0;
+      spinTimeTotal = Math.random() * 3000 + 4000;
+      rotateWheel();
+    }
+
+    function closeModal() {
+      document.getElementById('winnerModal').style.display = 'none';
+    }
+
+    document.getElementById('teamsInput').addEventListener('input', getTeams);
+    getTeams();
+  </script>
+</body>
+</html>

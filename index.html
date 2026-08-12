@@ -185,6 +185,11 @@
       box-shadow: 0 15px 40px rgba(212, 175, 55, 0.6);
     }
 
+    .spin-trigger-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
     .committee-panel {
       display: none;
       width: 100%;
@@ -348,7 +353,7 @@
       </div>
     </div>
 
-    <button class="spin-trigger-btn" onclick="spin()">SPIN WHEEL 🎡</button>
+    <button class="spin-trigger-btn" id="spinBtn" onclick="spin()">SPIN WHEEL 🎡</button>
 
     <div class="committee-panel" id="committeePanel">
       <div class="panel-header">
@@ -416,7 +421,7 @@
         </div>
       </div>
 
-      <div class="section-title">3. Teams Configuration (Tick to Include in Winner Pool)</div>
+      <div class="section-title">3. Teams Configuration (Tick to Include in Wheel)</div>
       <div id="teamsControlList"></div>
     </div>
   </div>
@@ -441,6 +446,7 @@
 
     let isCommitteeUnlocked = false;
     let selectedWinnerId = null;
+    let isSpinning = false;
 
     const canvas = document.getElementById('wheel');
     const ctx = canvas.getContext('2d');
@@ -448,10 +454,9 @@
     let startAngle = 0;
     let arc = 0;
     let spinTimeout = null;
-    let spinAngleStart = 10;
+    let spinAngleStart = 25;
     let spinTime = 0;
     let spinTimeTotal = 0;
-    let targetIndex = -1;
 
     function getAllTeams() {
       return teamsData.filter(t => t.name.trim() !== "");
@@ -511,14 +516,22 @@
       startAngle += (spinAngle * Math.PI / 180);
       drawWheel();
 
-      spinTimeout = setTimeout(rotateWheel, 30);
+      spinTimeout = setTimeout(rotateWheel, 20);
     }
 
     function stopRotateWheel() {
       clearTimeout(spinTimeout);
+      isSpinning = false;
+      document.getElementById('spinBtn').disabled = false;
+
       const allTeams = getAllTeams();
       
-      const winner = allTeams[targetIndex];
+      const degrees = (startAngle * 180 / Math.PI) % 360;
+      const arcd = (arc * 180 / Math.PI);
+      let index = Math.floor((360 - (degrees % 360)) / arcd);
+      if (index >= allTeams.length) index = 0;
+
+      const winner = allTeams[index];
       selectedWinnerId = winner.id;
 
       document.getElementById('winnerName').innerText = winner.name;
@@ -534,13 +547,13 @@
 
       document.getElementById('winnerModal').style.display = 'flex';
 
-      // Play Uploaded Custom Audio Only
+      // Custom Audio Play
       if (winner.audio) {
         const audio = new Audio(winner.audio);
         audio.play();
       }
 
-      // Trigger Immediate Grand Popper
+      // Immediate Popper
       triggerGrandPopper();
     }
 
@@ -568,28 +581,39 @@
     }
 
     function spin() {
+      if (isSpinning) return;
+
       const eligibleTeams = getEligibleTeams();
       if (eligibleTeams.length === 0) {
-        alert("Please tick at least 1 team in Committee Portal to be selected!");
+        alert("Please tick at least 1 team in Committee Portal to spin!");
         return;
       }
 
+      isSpinning = true;
+      document.getElementById('spinBtn').disabled = true;
+
       const allTeams = getAllTeams();
       const chosenWinner = eligibleTeams[Math.floor(Math.random() * eligibleTeams.length)];
-      targetIndex = allTeams.findIndex(t => t.id === chosenWinner.id);
+      const targetIndex = allTeams.findIndex(t => t.id === chosenWinner.id);
 
       const segmentAngle = 360 / allTeams.length;
-      const targetAngleDegrees = 270 - (targetIndex * segmentAngle + segmentAngle / 2);
       
+      // Calculate exact angle to hit target team segment accurately under pointer
+      const targetMiddle = (targetIndex * segmentAngle) + (segmentAngle / 2);
+      let targetDegrees = 270 - targetMiddle;
+      while (targetDegrees < 0) targetDegrees += 360;
+
       const currentDegrees = (startAngle * 180 / Math.PI) % 360;
-      let extraTurns = 360 * 5;
-      
-      let finalDegrees = targetAngleDegrees - currentDegrees;
-      while (finalDegrees < 0) finalDegrees += 360;
-      
-      spinAngleStart = (extraTurns + finalDegrees) / 100;
+      let deltaDegrees = targetDegrees - currentDegrees;
+      while (deltaDegrees < 0) deltaDegrees += 360;
+
+      const extraRounds = 360 * 8; // 8 fast spins
+      const totalRotationNeeded = extraRounds + deltaDegrees;
+
+      spinAngleStart = (totalRotationNeeded / 100) * 2;
       spinTime = 0;
-      spinTimeTotal = 4000;
+      spinTimeTotal = 2500; // Fast 2.5 second duration
+      
       rotateWheel();
     }
 
@@ -599,8 +623,12 @@
       const autoRemove = document.getElementById('autoRemoveCheck').checked;
       if (autoRemove && selectedWinnerId !== null) {
         const team = teamsData.find(t => t.id === selectedWinnerId);
-        if (team) team.enabled = false;
-        if (isCommitteeUnlocked) renderCommitteeList();
+        if (team) {
+          team.enabled = false; // Disable (untick) selected winner
+        }
+        if (isCommitteeUnlocked) {
+          renderCommitteeList();
+        }
       }
     }
 

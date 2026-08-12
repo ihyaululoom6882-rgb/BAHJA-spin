@@ -437,16 +437,25 @@
           <input type="file" accept="image/png, image/jpeg" onchange="uploadCenterLogo(event)">
         </div>
         <div class="control-group">
+          <label>Force / Control Winner 🎯</label>
+          <select id="forcedWinnerSelect" style="border: 1px solid var(--accent-color); color: #d4af37; font-weight: bold;">
+            <option value="random">🎲 Random Winner (Normal)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="grid-3" style="margin-top: 15px;">
+        <div class="control-group">
           <label>After Spin Rule</label>
           <div style="display: flex; align-items: center; gap: 10px; margin-top: 8px;">
             <input type="checkbox" id="autoRemoveCheck" style="width: 20px; height: 20px; cursor: pointer;">
-            <label for="autoRemoveCheck" style="font-size: 0.85rem; color: #fff;">Auto-remove Selected Team</label>
+            <label for="autoRemoveCheck" style="font-size: 0.85rem; color: #fff;">Auto-remove Selected Winner Team</label>
           </div>
         </div>
       </div>
 
       <div class="section-title">
-        <span>3. Teams Configuration</span>
+        <span>3. Teams Configuration (Tick to Include in Selection)</span>
         <button class="add-team-btn" onclick="addNewTeam()">+ Add New Team</button>
       </div>
       <div id="teamsControlList"></div>
@@ -485,29 +494,52 @@
     let spinTime = 0;
     let spinTimeTotal = 0;
 
-    function getActiveTeams() {
+    // All added teams with valid names (shown on wheel)
+    function getAllTeams() {
+      return teamsData.filter(t => t.name.trim() !== "");
+    }
+
+    // Only ticked teams (eligible to win)
+    function getTickedTeams() {
       return teamsData.filter(t => t.enabled && t.name.trim() !== "");
     }
 
+    function updateForcedWinnerDropdown() {
+      const select = document.getElementById('forcedWinnerSelect');
+      const currentVal = select.value;
+      
+      select.innerHTML = `<option value="random">🎲 Random Winner (Normal)</option>`;
+      
+      const allTeams = getAllTeams();
+      allTeams.forEach(team => {
+        const opt = document.createElement('option');
+        opt.value = team.id;
+        opt.innerText = `🎯 Force Win: ${team.name} ${team.enabled ? '(Ticked)' : '(Unticked)'}`;
+        select.appendChild(opt);
+      });
+
+      select.value = currentVal;
+    }
+
     function drawWheel() {
-      const activeTeams = getActiveTeams();
+      const allTeams = getAllTeams();
       ctx.clearRect(0, 0, 480, 480);
 
-      if (activeTeams.length === 0) {
+      if (allTeams.length === 0) {
         ctx.fillStyle = "#d4af37";
         ctx.font = "16px 'Montserrat', sans-serif";
-        ctx.fillText("No Teams Selected", 170, 240);
+        ctx.fillText("No Teams Added", 170, 240);
         return;
       }
 
-      arc = (2 * Math.PI) / activeTeams.length;
+      arc = (2 * Math.PI) / allTeams.length;
       const outsideRadius = 220;
       const textRadius = 150;
       const insideRadius = 60;
 
-      for (let i = 0; i < activeTeams.length; i++) {
+      for (let i = 0; i < allTeams.length; i++) {
         const angle = startAngle + i * arc;
-        const team = activeTeams[i];
+        const team = allTeams[i];
         
         ctx.fillStyle = team.color;
 
@@ -549,16 +581,15 @@
       isSpinning = false;
       document.getElementById('spinBtn').disabled = false;
 
-      const activeTeams = getActiveTeams();
+      const allTeams = getAllTeams();
       
-      // Calculate exact winner under top pointer (270 degrees / 1.5 * PI)
       let degrees = (startAngle * 180 / Math.PI) % 360;
       if (degrees < 0) degrees += 360;
 
       const arcd = (arc * 180 / Math.PI);
       let index = Math.floor((270 - degrees + 360) % 360 / arcd);
       
-      const winner = activeTeams[index];
+      const winner = allTeams[index];
       selectedWinnerId = winner.id;
 
       document.getElementById('winnerName').innerText = winner.name;
@@ -608,19 +639,40 @@
     function spin() {
       if (isSpinning) return;
 
-      const activeTeams = getActiveTeams();
-      if (activeTeams.length === 0) {
-        alert("Please tick at least 1 team in Committee Portal to spin!");
+      const tickedTeams = getTickedTeams();
+      const allTeams = getAllTeams();
+
+      if (allTeams.length === 0) {
+        alert("Please add teams in Committee Portal!");
         return;
       }
 
       isSpinning = true;
       document.getElementById('spinBtn').disabled = true;
 
-      // Random target among active teams
-      const winnerIndex = Math.floor(Math.random() * activeTeams.length);
+      let chosenWinner = null;
+      const forcedVal = document.getElementById('forcedWinnerSelect').value;
 
-      const segmentAngle = 360 / activeTeams.length;
+      if (forcedVal !== "random") {
+        // Controlled Winner selected from Committee Panel
+        chosenWinner = allTeams.find(t => t.id == forcedVal);
+      } 
+      
+      // If Random or controlled winner missing, fallback to random ticked team
+      if (!chosenWinner) {
+        if (tickedTeams.length === 0) {
+          alert("Please tick at least 1 team in Committee Portal to spin!");
+          isSpinning = false;
+          document.getElementById('spinBtn').disabled = false;
+          return;
+        }
+        chosenWinner = tickedTeams[Math.floor(Math.random() * tickedTeams.length)];
+      }
+      
+      // Find where this target winner sits on the full wheel
+      const winnerIndex = allTeams.findIndex(t => t.id === chosenWinner.id);
+
+      const segmentAngle = 360 / allTeams.length;
       const targetMiddle = (winnerIndex * segmentAngle) + (segmentAngle / 2);
       
       let targetDegrees = 270 - targetMiddle;
@@ -632,12 +684,13 @@
       let deltaDegrees = targetDegrees - currentDegrees;
       while (deltaDegrees < 0) deltaDegrees += 360;
 
-      const extraRounds = 360 * 6; // 6 fast spins
+      // Spin duration and turns
+      const extraRounds = 360 * 12; 
       const totalRotationNeeded = extraRounds + deltaDegrees;
 
       spinAngleStart = (totalRotationNeeded / 100) * 2;
       spinTime = 0;
-      spinTimeTotal = 2500; // Fast 2.5 second duration
+      spinTimeTotal = 5500;
       
       rotateWheel();
     }
@@ -649,9 +702,10 @@
       if (autoRemove && selectedWinnerId !== null) {
         const team = teamsData.find(t => t.id === selectedWinnerId);
         if (team) {
-          team.enabled = false; // Untick selected winner so it's removed from wheel
+          team.enabled = false;
         }
         drawWheel();
+        updateForcedWinnerDropdown();
         if (isCommitteeUnlocked) {
           renderCommitteeList();
         }
@@ -664,6 +718,7 @@
         if (pass === "spincommittiee") {
           isCommitteeUnlocked = true;
           document.getElementById('committeePanel').style.display = 'block';
+          updateForcedWinnerDropdown();
           renderCommitteeList();
         } else if (pass !== null) {
           alert("Incorrect Password!");
@@ -742,6 +797,7 @@
       if (team) {
         team.enabled = !team.enabled;
         drawWheel();
+        updateForcedWinnerDropdown();
       }
     }
 
@@ -749,6 +805,7 @@
       const team = teamsData.find(t => t.id === id);
       if (team) team.name = val;
       drawWheel();
+      updateForcedWinnerDropdown();
     }
 
     function updateTeamColor(id, val) {
@@ -776,6 +833,7 @@
       });
       renderCommitteeList();
       drawWheel();
+      updateForcedWinnerDropdown();
     }
 
     function deleteTeam(id) {
@@ -783,6 +841,7 @@
         teamsData = teamsData.filter(t => t.id !== id);
         renderCommitteeList();
         drawWheel();
+        updateForcedWinnerDropdown();
       }
     }
 
@@ -837,6 +896,7 @@
     }
 
     drawWheel();
+    updateForcedWinnerDropdown();
   </script>
 </body>
 </html>

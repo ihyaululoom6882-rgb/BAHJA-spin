@@ -496,7 +496,7 @@
     let isCommitteeUnlocked = false;
     let selectedWinnerId = null;
     let isSpinning = false;
-    let currentSpinCount = 0; // Track spin sequence
+    let currentSpinCount = 0;
 
     const canvas = document.getElementById('wheel');
     const ctx = canvas.getContext('2d');
@@ -508,19 +508,14 @@
     let spinTime = 0;
     let spinTimeTotal = 0;
 
-    // All added teams with valid names (shown on wheel)
-    function getAllTeams() {
-      return teamsData.filter(t => t.name.trim() !== "");
-    }
-
-    // Only ticked teams (eligible for fallback)
-    function getTickedTeams() {
+    // Filter active teams (Enabled + Name not empty)
+    function getActiveTeams() {
       return teamsData.filter(t => t.enabled && t.name.trim() !== "");
     }
 
     function updateForcedWinnerDropdowns() {
       const selects = ['winner1Select', 'winner2Select', 'winner3Select'];
-      const allTeams = getAllTeams();
+      const activeTeams = getActiveTeams();
 
       selects.forEach(selectId => {
         const select = document.getElementById(selectId);
@@ -528,7 +523,7 @@
         
         select.innerHTML = `<option value="none">-- Select Winner --</option>`;
         
-        allTeams.forEach(team => {
+        activeTeams.forEach(team => {
           const opt = document.createElement('option');
           opt.value = team.id;
           opt.innerText = team.name;
@@ -540,24 +535,24 @@
     }
 
     function drawWheel() {
-      const allTeams = getAllTeams();
+      const activeTeams = getActiveTeams();
       ctx.clearRect(0, 0, 480, 480);
 
-      if (allTeams.length === 0) {
+      if (activeTeams.length === 0) {
         ctx.fillStyle = "#d4af37";
         ctx.font = "16px 'Montserrat', sans-serif";
-        ctx.fillText("No Teams Added", 170, 240);
+        ctx.fillText("No Active Teams", 170, 240);
         return;
       }
 
-      arc = (2 * Math.PI) / allTeams.length;
+      arc = (2 * Math.PI) / activeTeams.length;
       const outsideRadius = 220;
       const textRadius = 150;
       const insideRadius = 60;
 
-      for (let i = 0; i < allTeams.length; i++) {
+      for (let i = 0; i < activeTeams.length; i++) {
         const angle = startAngle + i * arc;
-        const team = allTeams[i];
+        const team = activeTeams[i];
         
         ctx.fillStyle = team.color;
 
@@ -599,7 +594,7 @@
       isSpinning = false;
       document.getElementById('spinBtn').disabled = false;
 
-      const allTeams = getAllTeams();
+      const activeTeams = getActiveTeams();
       
       let degrees = (startAngle * 180 / Math.PI) % 360;
       if (degrees < 0) degrees += 360;
@@ -607,7 +602,7 @@
       const arcd = (arc * 180 / Math.PI);
       let index = Math.floor((270 - degrees + 360) % 360 / arcd);
       
-      const winner = allTeams[index];
+      const winner = activeTeams[index];
       selectedWinnerId = winner.id;
 
       document.getElementById('winnerName').innerText = winner.name;
@@ -657,22 +652,21 @@
     function spin() {
       if (isSpinning) return;
 
-      const allTeams = getAllTeams();
+      const activeTeams = getActiveTeams();
 
-      if (allTeams.length === 0) {
-        alert("Please add teams in Committee Portal!");
+      if (activeTeams.length === 0) {
+        alert("No active teams available on the wheel!");
         return;
       }
 
       isSpinning = true;
       document.getElementById('spinBtn').disabled = true;
 
-      currentSpinCount++; // 1, 2, 3...
+      currentSpinCount++;
 
       let chosenWinner = null;
       let targetWinnerId = "none";
 
-      // Pick winner based on spin count sequence
       if (currentSpinCount === 1) {
         targetWinnerId = document.getElementById('winner1Select').value;
       } else if (currentSpinCount === 2) {
@@ -681,26 +675,19 @@
         targetWinnerId = document.getElementById('winner3Select').value;
       }
 
+      // Exact String vs Number comparison fixed using String()
       if (targetWinnerId !== "none") {
-        chosenWinner = allTeams.find(t => t.id == targetWinnerId);
+        chosenWinner = activeTeams.find(t => String(t.id) === String(targetWinnerId));
       } 
       
-      // Fallback: If no preset winner selected, use ticked teams
+      // Fallback: Pick random active team
       if (!chosenWinner) {
-        const tickedTeams = getTickedTeams();
-        if (tickedTeams.length === 0) {
-          alert("Please select Preset Winners or tick teams in Committee Portal!");
-          isSpinning = false;
-          document.getElementById('spinBtn').disabled = false;
-          return;
-        }
-        chosenWinner = tickedTeams[Math.floor(Math.random() * tickedTeams.length)];
+        chosenWinner = activeTeams[Math.floor(Math.random() * activeTeams.length)];
       }
       
-      // Find position on the full wheel
-      const winnerIndex = allTeams.findIndex(t => t.id === chosenWinner.id);
+      const winnerIndex = activeTeams.findIndex(t => t.id === chosenWinner.id);
 
-      const segmentAngle = 360 / allTeams.length;
+      const segmentAngle = 360 / activeTeams.length;
       const targetMiddle = (winnerIndex * segmentAngle) + (segmentAngle / 2);
       
       let targetDegrees = 270 - targetMiddle;
@@ -712,7 +699,6 @@
       let deltaDegrees = targetDegrees - currentDegrees;
       while (deltaDegrees < 0) deltaDegrees += 360;
 
-      // Spin duration and turns
       const extraRounds = 360 * 12; 
       const totalRotationNeeded = extraRounds + deltaDegrees;
 
@@ -730,10 +716,13 @@
       if (autoRemove && selectedWinnerId !== null) {
         const team = teamsData.find(t => t.id === selectedWinnerId);
         if (team) {
-          team.enabled = false;
+          team.enabled = false; // Disable team (Removes from wheel & active lists)
         }
+        selectedWinnerId = null;
+        
         drawWheel();
         updateForcedWinnerDropdowns();
+        
         if (isCommitteeUnlocked) {
           renderCommitteeList();
         }

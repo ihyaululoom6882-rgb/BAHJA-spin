@@ -437,15 +437,6 @@
           <input type="file" accept="image/png, image/jpeg" onchange="uploadCenterLogo(event)">
         </div>
         <div class="control-group">
-          <label>Force / Control Winner 🎯</label>
-          <select id="forcedWinnerSelect" style="border: 1px solid var(--accent-color); color: #d4af37; font-weight: bold;">
-            <option value="random">🎲 Random Winner (Normal)</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="grid-3" style="margin-top: 15px;">
-        <div class="control-group">
           <label>After Spin Rule</label>
           <div style="display: flex; align-items: center; gap: 10px; margin-top: 8px;">
             <input type="checkbox" id="autoRemoveCheck" style="width: 20px; height: 20px; cursor: pointer;">
@@ -454,8 +445,30 @@
         </div>
       </div>
 
+      <div class="section-title">3. Pre-set Winners Sequence 🎯 (3 Teams Control)</div>
+      <div class="grid-3" style="background: rgba(212, 175, 55, 0.05); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color);">
+        <div class="control-group">
+          <label style="color: #d4af37; font-weight: bold;">🥇 1st Spin Winner</label>
+          <select id="winner1Select" style="border: 1px solid var(--accent-color);">
+            <option value="none">-- Select 1st Winner --</option>
+          </select>
+        </div>
+        <div class="control-group">
+          <label style="color: #d4af37; font-weight: bold;">🥈 2nd Spin Winner</label>
+          <select id="winner2Select" style="border: 1px solid var(--accent-color);">
+            <option value="none">-- Select 2nd Winner --</option>
+          </select>
+        </div>
+        <div class="control-group">
+          <label style="color: #d4af37; font-weight: bold;">🥉 3rd Spin Winner</label>
+          <select id="winner3Select" style="border: 1px solid var(--accent-color);">
+            <option value="none">-- Select 3rd Winner --</option>
+          </select>
+        </div>
+      </div>
+
       <div class="section-title">
-        <span>3. Teams Configuration (Tick to Include in Selection)</span>
+        <span>4. Teams Configuration (Tick to Include on Wheel)</span>
         <button class="add-team-btn" onclick="addNewTeam()">+ Add New Team</button>
       </div>
       <div id="teamsControlList"></div>
@@ -483,6 +496,7 @@
     let isCommitteeUnlocked = false;
     let selectedWinnerId = null;
     let isSpinning = false;
+    let currentSpinCount = 0; // Track spin sequence
 
     const canvas = document.getElementById('wheel');
     const ctx = canvas.getContext('2d');
@@ -499,26 +513,30 @@
       return teamsData.filter(t => t.name.trim() !== "");
     }
 
-    // Only ticked teams (eligible to win)
+    // Only ticked teams (eligible for fallback)
     function getTickedTeams() {
       return teamsData.filter(t => t.enabled && t.name.trim() !== "");
     }
 
-    function updateForcedWinnerDropdown() {
-      const select = document.getElementById('forcedWinnerSelect');
-      const currentVal = select.value;
-      
-      select.innerHTML = `<option value="random">🎲 Random Winner (Normal)</option>`;
-      
+    function updateForcedWinnerDropdowns() {
+      const selects = ['winner1Select', 'winner2Select', 'winner3Select'];
       const allTeams = getAllTeams();
-      allTeams.forEach(team => {
-        const opt = document.createElement('option');
-        opt.value = team.id;
-        opt.innerText = `🎯 Force Win: ${team.name} ${team.enabled ? '(Ticked)' : '(Unticked)'}`;
-        select.appendChild(opt);
-      });
 
-      select.value = currentVal;
+      selects.forEach(selectId => {
+        const select = document.getElementById(selectId);
+        const currentVal = select.value;
+        
+        select.innerHTML = `<option value="none">-- Select Winner --</option>`;
+        
+        allTeams.forEach(team => {
+          const opt = document.createElement('option');
+          opt.value = team.id;
+          opt.innerText = team.name;
+          select.appendChild(opt);
+        });
+
+        select.value = currentVal;
+      });
     }
 
     function drawWheel() {
@@ -639,7 +657,6 @@
     function spin() {
       if (isSpinning) return;
 
-      const tickedTeams = getTickedTeams();
       const allTeams = getAllTeams();
 
       if (allTeams.length === 0) {
@@ -650,18 +667,29 @@
       isSpinning = true;
       document.getElementById('spinBtn').disabled = true;
 
-      let chosenWinner = null;
-      const forcedVal = document.getElementById('forcedWinnerSelect').value;
+      currentSpinCount++; // 1, 2, 3...
 
-      if (forcedVal !== "random") {
-        // Controlled Winner selected from Committee Panel
-        chosenWinner = allTeams.find(t => t.id == forcedVal);
+      let chosenWinner = null;
+      let targetWinnerId = "none";
+
+      // Pick winner based on spin count sequence
+      if (currentSpinCount === 1) {
+        targetWinnerId = document.getElementById('winner1Select').value;
+      } else if (currentSpinCount === 2) {
+        targetWinnerId = document.getElementById('winner2Select').value;
+      } else if (currentSpinCount === 3) {
+        targetWinnerId = document.getElementById('winner3Select').value;
+      }
+
+      if (targetWinnerId !== "none") {
+        chosenWinner = allTeams.find(t => t.id == targetWinnerId);
       } 
       
-      // If Random or controlled winner missing, fallback to random ticked team
+      // Fallback: If no preset winner selected, use ticked teams
       if (!chosenWinner) {
+        const tickedTeams = getTickedTeams();
         if (tickedTeams.length === 0) {
-          alert("Please tick at least 1 team in Committee Portal to spin!");
+          alert("Please select Preset Winners or tick teams in Committee Portal!");
           isSpinning = false;
           document.getElementById('spinBtn').disabled = false;
           return;
@@ -669,7 +697,7 @@
         chosenWinner = tickedTeams[Math.floor(Math.random() * tickedTeams.length)];
       }
       
-      // Find where this target winner sits on the full wheel
+      // Find position on the full wheel
       const winnerIndex = allTeams.findIndex(t => t.id === chosenWinner.id);
 
       const segmentAngle = 360 / allTeams.length;
@@ -705,7 +733,7 @@
           team.enabled = false;
         }
         drawWheel();
-        updateForcedWinnerDropdown();
+        updateForcedWinnerDropdowns();
         if (isCommitteeUnlocked) {
           renderCommitteeList();
         }
@@ -718,7 +746,7 @@
         if (pass === "spincommittiee") {
           isCommitteeUnlocked = true;
           document.getElementById('committeePanel').style.display = 'block';
-          updateForcedWinnerDropdown();
+          updateForcedWinnerDropdowns();
           renderCommitteeList();
         } else if (pass !== null) {
           alert("Incorrect Password!");
@@ -797,7 +825,7 @@
       if (team) {
         team.enabled = !team.enabled;
         drawWheel();
-        updateForcedWinnerDropdown();
+        updateForcedWinnerDropdowns();
       }
     }
 
@@ -805,7 +833,7 @@
       const team = teamsData.find(t => t.id === id);
       if (team) team.name = val;
       drawWheel();
-      updateForcedWinnerDropdown();
+      updateForcedWinnerDropdowns();
     }
 
     function updateTeamColor(id, val) {
@@ -833,7 +861,7 @@
       });
       renderCommitteeList();
       drawWheel();
-      updateForcedWinnerDropdown();
+      updateForcedWinnerDropdowns();
     }
 
     function deleteTeam(id) {
@@ -841,7 +869,7 @@
         teamsData = teamsData.filter(t => t.id !== id);
         renderCommitteeList();
         drawWheel();
-        updateForcedWinnerDropdown();
+        updateForcedWinnerDropdowns();
       }
     }
 
@@ -896,7 +924,7 @@
     }
 
     drawWheel();
-    updateForcedWinnerDropdown();
+    updateForcedWinnerDropdowns();
   </script>
 </body>
 </html>

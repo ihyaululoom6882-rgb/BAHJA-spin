@@ -3,21 +3,26 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>BAHJA-26 | Executive Selection Portal</title>
-  <!-- Premium Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Great+Vibes&family=Montserrat:wght@600;800&family=Orbitron:wght@700;900&family=Playfair+Display:wght@700&family=Plus+Jakarta+Sans:wght@500;700&display=swap" rel="stylesheet" />
+  <title>BAHJA-26 | Executive Team Selector Portal</title>
+  
+  <!-- Premium Executive Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Bruno+Ace+SC&family=Cinzel:wght@700;900&family=Montserrat:wght@600;800&family=Playfair+Display:ital,wght@0,700;1,700&family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
   <style>
     :root {
-      --bg-gradient: linear-gradient(135deg, #090a0f 0%, #121824 100%);
+      --bg-gradient: linear-gradient(135deg, #07090e 0%, #0f172a 100%);
       --accent-color: #d4af37;
       --card-bg: rgba(255, 255, 255, 0.03);
       --border-color: rgba(212, 175, 55, 0.25);
-      --fest-font: 'Cinzel', serif;
-      --team-font: 'Plus Jakarta Sans', sans-serif;
+      
+      --fest-title-font: 'Cinzel', serif;
+      --fest-title-color: #d4af37;
+      --fest-tag-font: 'Plus Jakarta Sans', sans-serif;
+      --fest-tag-color: #9ca3af;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
     
     body {
       background: var(--bg-gradient);
@@ -26,41 +31,57 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 25px 15px;
-      font-family: 'Plus Jakarta Sans', sans-serif;
+      padding: 30px 20px;
+      position: relative;
       overflow-x: hidden;
     }
 
-    /* Top Bar Header */
-    header { text-align: center; margin-bottom: 25px; }
+    /* Web Corner Branding Logo */
+    .corner-logo-box {
+      position: absolute;
+      top: 25px;
+      left: 25px;
+      z-index: 100;
+    }
+    .corner-logo {
+      max-height: 75px;
+      max-width: 180px;
+      object-fit: contain;
+      filter: drop-shadow(0 4px 10px rgba(0,0,0,0.6));
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 30px;
+      margin-top: 10px;
+    }
 
     .fest-title {
-      font-family: var(--fest-font);
+      font-family: var(--fest-title-font);
+      color: var(--fest-title-color);
       font-size: 3.2rem;
       letter-spacing: 3px;
-      background: linear-gradient(180deg, #ffffff 30%, var(--accent-color) 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      text-shadow: 0 10px 25px rgba(0,0,0,0.8);
-      transition: font-family 0.3s ease;
+      text-shadow: 0 0 30px rgba(212, 175, 55, 0.3);
+      transition: all 0.3s;
     }
 
     .fest-subtitle {
-      font-size: 0.9rem;
-      text-transform: uppercase;
+      font-family: var(--fest-tag-font);
+      color: var(--fest-tag-color);
+      font-size: 1.05rem;
       letter-spacing: 5px;
-      color: #9ca3af;
       margin-top: 5px;
+      text-transform: uppercase;
     }
 
     .admin-toggle-btn {
       position: absolute;
-      top: 20px;
-      right: 20px;
+      top: 25px;
+      right: 25px;
       background: rgba(255, 255, 255, 0.05);
       border: 1px solid var(--border-color);
       color: var(--accent-color);
-      padding: 10px 18px;
+      padding: 10px 20px;
       border-radius: 30px;
       cursor: pointer;
       font-size: 0.85rem;
@@ -68,31 +89,32 @@
       letter-spacing: 1px;
       backdrop-filter: blur(10px);
       transition: all 0.3s;
+      z-index: 100;
     }
 
     .admin-toggle-btn:hover {
       background: var(--accent-color);
       color: #000;
-      box-shadow: 0 0 15px rgba(212, 175, 55, 0.4);
+      box-shadow: 0 0 20px rgba(212, 175, 55, 0.5);
     }
 
     .main-wrapper {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 25px;
+      gap: 30px;
       width: 100%;
       max-width: 1200px;
     }
 
-    /* Wheel Section */
+    /* Wheel Area & Center Logo */
     .wheel-container {
       position: relative;
       padding: 18px;
       background: var(--card-bg);
       border: 1px solid var(--border-color);
       border-radius: 50%;
-      box-shadow: 0 20px 50px rgba(0,0,0,0.7);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.8);
       backdrop-filter: blur(20px);
     }
 
@@ -104,256 +126,300 @@
       z-index: 20;
       width: 0;
       height: 0;
-      border-left: 16px solid transparent;
-      border-right: 16px solid transparent;
-      border-top: 32px solid var(--accent-color);
+      border-left: 18px solid transparent;
+      border-right: 18px solid transparent;
+      border-top: 36px solid var(--accent-color);
       filter: drop-shadow(0 4px 10px rgba(0,0,0,0.8));
     }
 
-    canvas { border-radius: 50%; display: block; }
+    canvas {
+      border-radius: 50%;
+      display: block;
+    }
+
+    .wheel-center-logo {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background: #0f172a;
+      border: 3px solid var(--accent-color);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 10;
+      overflow: hidden;
+      box-shadow: 0 0 20px rgba(0,0,0,0.8);
+    }
+
+    .wheel-center-logo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
 
     .spin-trigger-btn {
       background: linear-gradient(135deg, #d4af37 0%, #aa7c11 100%);
       border: none;
       color: #000;
-      font-size: 1.1rem;
+      font-size: 1.2rem;
       font-weight: 800;
-      letter-spacing: 3px;
-      padding: 16px 50px;
+      letter-spacing: 4px;
+      padding: 18px 55px;
       border-radius: 40px;
       cursor: pointer;
-      box-shadow: 0 10px 25px rgba(212, 175, 55, 0.3);
+      box-shadow: 0 10px 30px rgba(212, 175, 55, 0.4);
       transition: all 0.3s ease;
       text-transform: uppercase;
     }
 
     .spin-trigger-btn:hover {
-      transform: translateY(-3px) scale(1.02);
-      box-shadow: 0 15px 35px rgba(212, 175, 55, 0.5);
+      transform: translateY(-3px) scale(1.03);
+      box-shadow: 0 15px 40px rgba(212, 175, 55, 0.6);
     }
 
-    /* Committee Control Panel */
+    /* Committee Drawer Controls */
     .committee-panel {
       display: none;
       width: 100%;
       max-width: 1000px;
-      background: rgba(12, 16, 26, 0.96);
+      background: rgba(10, 14, 23, 0.96);
       border: 1px solid var(--border-color);
-      border-radius: 20px;
-      padding: 30px;
+      border-radius: 24px;
+      padding: 35px;
       backdrop-filter: blur(25px);
-      box-shadow: 0 30px 60px rgba(0,0,0,0.9);
+      box-shadow: 0 30px 70px rgba(0,0,0,0.9);
       margin-top: 20px;
     }
 
     .panel-header {
       font-family: 'Cinzel', serif;
-      font-size: 1.4rem;
+      font-size: 1.5rem;
       color: var(--accent-color);
-      margin-bottom: 20px;
+      margin-bottom: 25px;
       border-bottom: 1px solid var(--border-color);
-      padding-bottom: 10px;
+      padding-bottom: 12px;
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
 
-    .panel-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 20px;
-      margin-bottom: 25px;
+    .section-title {
+      font-size: 1.1rem;
+      color: var(--accent-color);
+      margin: 20px 0 12px 0;
+      border-left: 3px solid var(--accent-color);
+      padding-left: 10px;
     }
 
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; }
+
     .control-group {
-      background: rgba(255, 255, 255, 0.02);
-      padding: 15px;
-      border-radius: 12px;
-      border: 1px solid rgba(255, 255, 255, 0.05);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
     }
 
     .control-group label {
-      display: block;
-      font-size: 0.85rem;
-      color: var(--accent-color);
-      margin-bottom: 8px;
-      font-weight: 600;
+      font-size: 0.8rem;
+      color: #9ca3af;
+      text-transform: uppercase;
     }
 
-    .control-group input[type="text"], .control-group select {
-      width: 100%;
-      background: #080b12;
-      border: 1px solid rgba(255, 255, 255, 0.1);
+    input[type="text"], select {
+      background: #07090e;
+      border: 1px solid rgba(255,255,255,0.15);
       color: #fff;
-      padding: 10px;
+      padding: 10px 14px;
       border-radius: 8px;
+      outline: none;
       font-size: 0.9rem;
     }
 
+    input[type="color"] {
+      border: none;
+      width: 100%;
+      height: 40px;
+      border-radius: 6px;
+      cursor: pointer;
+      background: transparent;
+    }
+
+    /* Team Custom Table */
     .team-item {
       display: grid;
-      grid-template-columns: 35px 1.2fr 50px 1fr 100px;
+      grid-template-columns: 35px 1.5fr 70px 120px 1.2fr 1.2fr;
       gap: 10px;
       align-items: center;
       background: rgba(255,255,255,0.02);
-      padding: 10px 12px;
+      padding: 12px;
       border-radius: 10px;
       margin-bottom: 10px;
       border: 1px solid rgba(255,255,255,0.05);
     }
 
-    .team-item input[type="color"] {
-      width: 100%;
-      height: 35px;
-      border: none;
-      background: transparent;
-      cursor: pointer;
-    }
+    .team-item input[type="file"] { font-size: 0.75rem; color: #9ca3af; }
 
-    .team-item input[type="text"] {
-      background: #080b12;
-      border: 1px solid rgba(255,255,255,0.1);
-      color: #fff;
-      padding: 8px;
-      border-radius: 6px;
-    }
-
-    .checkbox-container {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      cursor: pointer;
-      font-size: 0.9rem;
-    }
-
-    /* Winner Popup */
+    /* Grand Winner Popup */
     .winner-modal {
       display: none;
       position: fixed;
       top:0; left:0; width:100%; height:100%;
       background: rgba(0,0,0,0.92);
-      backdrop-filter: blur(15px);
+      backdrop-filter: blur(20px);
       z-index: 1000;
       justify-content: center;
       align-items: center;
     }
 
     .winner-card {
-      background: linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, rgba(18, 24, 36, 0.95) 100%);
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, rgba(15, 23, 42, 0.98) 100%);
       border: 2px solid var(--accent-color);
-      border-radius: 24px;
-      padding: 40px 60px;
+      border-radius: 28px;
+      padding: 50px 70px;
       text-align: center;
-      box-shadow: 0 0 80px rgba(212, 175, 55, 0.35);
-      max-width: 500px;
+      box-shadow: 0 0 100px rgba(212, 175, 55, 0.4);
+      max-width: 550px;
       width: 90%;
+      position: relative;
     }
 
     .winner-logo {
-      width: 120px;
-      height: 120px;
+      width: 140px;
+      height: 140px;
       object-fit: contain;
       margin: 15px auto;
       display: none;
-      filter: drop-shadow(0 10px 20px rgba(0,0,0,0.6));
+      filter: drop-shadow(0 10px 25px rgba(0,0,0,0.7));
     }
 
     .winner-title {
-      font-family: var(--team-font);
-      font-size: 2.8rem;
+      font-size: 3rem;
       color: #fff;
       margin: 15px 0;
+      text-transform: uppercase;
     }
 
     .close-modal-btn {
       background: transparent;
-      border: 1px solid var(--accent-color);
+      border: 2px solid var(--accent-color);
       color: var(--accent-color);
-      padding: 10px 30px;
+      padding: 12px 40px;
       border-radius: 30px;
       cursor: pointer;
       font-weight: 700;
+      letter-spacing: 2px;
       transition: all 0.3s;
     }
 
     .close-modal-btn:hover {
       background: var(--accent-color);
       color: #000;
+      box-shadow: 0 0 25px rgba(212, 175, 55, 0.6);
     }
   </style>
 </head>
 <body>
 
+  <!-- Web Corner Logo -->
+  <div class="corner-logo-box">
+    <img id="cornerLogoImg" class="corner-logo" src="" alt="" style="display: none;" />
+  </div>
+
   <button class="admin-toggle-btn" onclick="toggleCommitteePortal()">🔒 COMMITTEE PORTAL</button>
 
   <header>
-    <h1 class="fest-title" id="displayFestName">BAHJA-26</h1>
-    <p class="fest-subtitle">DARS Students Art Fest</p>
+    <h1 class="fest-title" id="festTitleDisplay">BAHJA-26</h1>
+    <p class="fest-subtitle" id="festTaglineDisplay">DARS Students Art Fest | Executive Selection</p>
   </header>
 
   <div class="main-wrapper">
-    <!-- Public Wheel Section -->
+    <!-- Public Phase: Wheel Display -->
     <div class="wheel-container">
       <div class="pointer"></div>
-      <canvas id="wheel" width="460" height="460"></canvas>
+      <canvas id="wheel" width="480" height="480"></canvas>
+      <div class="wheel-center-logo">
+        <img id="wheelCenterLogoImg" src="" alt="Logo" style="display: none;" />
+      </div>
     </div>
 
-    <button class="spin-trigger-btn" onclick="spin()">SPIN WHEEL</button>
+    <button class="spin-trigger-btn" onclick="spin()">SPIN WHEEL 🎡</button>
 
-    <!-- Committee Panel -->
+    <!-- Committee Protected Portal Controls -->
     <div class="committee-panel" id="committeePanel">
       <div class="panel-header">
-        <span>Committee Control Portal</span>
-        <span style="font-size: 0.8rem; color: #9ca3af;">Access Granted</span>
+        <span>Committee Administrative Control</span>
+        <span style="font-size: 0.8rem; color: #10b981;">✓ Access Granted</span>
       </div>
 
-      <div class="panel-grid">
-        <!-- General Settings -->
+      <!-- 1. Fest Header & Branding Customization -->
+      <div class="section-title">1. Fest Branding & Typography</div>
+      <div class="grid-3" style="margin-bottom: 15px;">
         <div class="control-group">
           <label>Fest Name</label>
-          <input type="text" id="inputFestName" value="BAHJA-26" oninput="updateFestName(this.value)">
+          <input type="text" id="festNameInput" value="BAHJA-26" oninput="updateBranding()">
         </div>
-
         <div class="control-group">
           <label>Fest Name Font</label>
-          <select onchange="changeFestFont(this.value)">
-            <option value="'Cinzel', serif">Cinzel (Executive Classical)</option>
-            <option value="'Orbitron', sans-serif">Orbitron (Modern Neon)</option>
-            <option value="'Great Vibes', cursive">Great Vibes (Calligraphy)</option>
-            <option value="'Playfair Display', serif">Playfair (Royal Serif)</option>
-            <option value="'Montserrat', sans-serif">Montserrat (Clean Modern)</option>
+          <select id="festFontSelect" onchange="updateBranding()">
+            <option value="'Cinzel', serif">Cinzel (Royal Classic)</option>
+            <option value="'Bebas Neue', sans-serif">Bebas Neue (Bold & Tall)</option>
+            <option value="'Playfair Display', serif">Playfair Display (Elegant)</option>
+            <option value="'Bruno Ace SC', cursive">Bruno Ace (Futuristic)</option>
+            <option value="'Montserrat', sans-serif">Montserrat (Modern)</option>
           </select>
         </div>
-
         <div class="control-group">
-          <label>Wheel Team Font</label>
-          <select onchange="changeTeamFont(this.value)">
-            <option value="'Plus Jakarta Sans', sans-serif">Jakarta Sans (Clean)</option>
-            <option value="'Orbitron', sans-serif">Orbitron (Futuristic)</option>
-            <option value="'Montserrat', sans-serif">Montserrat (Bold)</option>
-            <option value="'Cinzel', serif">Cinzel (Classical)</option>
-          </select>
-        </div>
-
-        <div class="control-group">
-          <label>Center Logo (PNG)</label>
-          <input type="file" accept="image/png, image/jpeg" onchange="uploadCenterLogo(event)">
-        </div>
-
-        <div class="control-group">
-          <label>Winner Announcement Custom Audio</label>
-          <input type="file" accept="audio/*" onchange="uploadCustomAudio(event)">
-        </div>
-
-        <div class="control-group" style="display: flex; align-items: center; height: 100%;">
-          <label class="checkbox-container">
-            <input type="checkbox" id="autoRemoveToggle" checked>
-            <span>Auto-Remove Selected Team After Spin</span>
-          </label>
+          <label>Fest Name Color</label>
+          <input type="color" id="festColorInput" value="#d4af37" onchange="updateBranding()">
         </div>
       </div>
 
-      <h4 style="color: var(--accent-color); margin-bottom: 12px;">Team Settings (Color, Name, Logo, Active Status)</h4>
+      <div class="grid-3">
+        <div class="control-group">
+          <label>Tagline Text</label>
+          <input type="text" id="festTagInput" value="DARS Students Art Fest | Executive Selection" oninput="updateBranding()">
+        </div>
+        <div class="control-group">
+          <label>Tagline Font</label>
+          <select id="tagFontSelect" onchange="updateBranding()">
+            <option value="'Plus Jakarta Sans', sans-serif">Plus Jakarta Sans</option>
+            <option value="'Montserrat', sans-serif">Montserrat</option>
+            <option value="'Playfair Display', serif">Playfair Display</option>
+          </select>
+        </div>
+        <div class="control-group">
+          <label>Tagline Color</label>
+          <input type="color" id="tagColorInput" value="#9ca3af" onchange="updateBranding()">
+        </div>
+      </div>
+
+      <!-- 2. Logos & Auto-Remove Switch -->
+      <div class="section-title">2. Logos & Rules Settings</div>
+      <div class="grid-3">
+        <div class="control-group">
+          <label>Corner PNG Logo</label>
+          <input type="file" accept="image/png, image/jpeg" onchange="uploadCornerLogo(event)">
+        </div>
+        <div class="control-group">
+          <label>Wheel Center PNG Logo</label>
+          <input type="file" accept="image/png, image/jpeg" onchange="uploadCenterLogo(event)">
+        </div>
+        <div class="control-group">
+          <label>After Spin Rule</label>
+          <div style="display: flex; align-items: center; gap: 10px; margin-top: 8px;">
+            <input type="checkbox" id="autoRemoveCheck" style="width: 20px; height: 20px; cursor: pointer;">
+            <label for="autoRemoveCheck" style="font-size: 0.85rem; color: #fff;">Auto-remove Selected Team</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Teams Manager Table -->
+      <div class="section-title">3. Teams Configuration (Tick to Include in Wheel)</div>
       <div id="teamsControlList"></div>
     </div>
   </div>
@@ -361,7 +427,7 @@
   <!-- Winner Modal -->
   <div class="winner-modal" id="winnerModal">
     <div class="winner-card">
-      <p style="color: var(--accent-color); letter-spacing: 3px; font-size: 0.85rem; text-transform: uppercase;">Selected Team</p>
+      <p style="color: var(--accent-color); letter-spacing: 3px; font-size: 0.85rem; text-transform: uppercase;">Selected Winner Team</p>
       <img id="winnerLogo" class="winner-logo" src="" alt="Team Logo" />
       <h2 class="winner-title" id="winnerName">TEAM NAME</h2>
       <button class="close-modal-btn" onclick="closeModal()">CONFIRM & CONTINUE</button>
@@ -369,20 +435,17 @@
   </div>
 
   <script>
-    // Initial Teams Dataset
+    // Teams Master Data Structure
     let teamsData = [
-      { id: 1, name: "ESPERENZA", color: "#1e293b", enabled: true, logo: "" },
-      { id: 2, name: "LUMINOSA", color: "#334155", enabled: true, logo: "" },
-      { id: 3, name: "GLORIOSA", color: "#0f172a", enabled: true, logo: "" },
-      { id: 4, name: "VITORIA", color: "#172554", enabled: true, logo: "" },
-      { id: 5, name: "VALERIA", color: "#311b92", enabled: true, logo: "" }
+      { id: 1, name: "ESPERENZA", color: "#1e293b", font: "'Montserrat', sans-serif", enabled: true, logo: "", audio: null },
+      { id: 2, name: "LUMINOSA", color: "#334155", font: "'Montserrat', sans-serif", enabled: true, logo: "", audio: null },
+      { id: 3, name: "GLORIOSA", color: "#0f172a", font: "'Montserrat', sans-serif", enabled: true, logo: "", audio: null },
+      { id: 4, name: "VITORIA", color: "#1e1b4b", font: "'Montserrat', sans-serif", enabled: true, logo: "", audio: null },
+      { id: 5, name: "VALERIA", color: "#31103f", font: "'Montserrat', sans-serif", enabled: true, logo: "", audio: null }
     ];
 
     let isCommitteeUnlocked = false;
-    let autoRemoveSelected = true;
-    let centerLogoImg = new Image();
-    let hasCenterLogo = false;
-    let customAudioURL = null;
+    let selectedWinnerId = null;
 
     const canvas = document.getElementById('wheel');
     const ctx = canvas.getContext('2d');
@@ -394,9 +457,8 @@
     let spinTime = 0;
     let spinTimeTotal = 0;
     let lastAngleIndex = -1;
-    let currentWinnerId = null;
 
-    // Web Audio Engine
+    // Web Audio System
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
     function playTickSound() {
@@ -405,43 +467,35 @@
       const gain = audioCtx.createGain();
       
       osc.type = 'sine';
-      osc.frequency.setValueAtTime(200, audioCtx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.04);
+      osc.frequency.setValueAtTime(220, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + 0.035);
       
-      gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.04);
+      gain.gain.setValueAtTime(0.35, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.035);
       
       osc.connect(gain);
       gain.connect(audioCtx.destination);
       osc.start();
-      osc.stop(audioCtx.currentTime + 0.04);
+      osc.stop(audioCtx.currentTime + 0.035);
     }
 
-    function playVictoryAudio() {
-      if (customAudioURL) {
-        const audio = new Audio(customAudioURL);
-        audio.play();
-      } else {
-        if (audioCtx.state === 'suspended') audioCtx.resume();
-        const now = audioCtx.currentTime;
-        const notes = [261.63, 329.63, 392.00, 523.25];
-        
-        notes.forEach((freq, index) => {
-          const osc = audioCtx.createOscillator();
-          const gain = audioCtx.createGain();
-          osc.type = 'triangle';
-          osc.frequency.value = freq;
-          
-          gain.gain.setValueAtTime(0, now + index * 0.08);
-          gain.gain.linearRampToValueAtTime(0.2, now + index * 0.08 + 0.05);
-          gain.gain.exponentialRampToValueAtTime(0.001, now + index * 0.08 + 1.2);
-          
-          osc.connect(gain);
-          gain.connect(audioCtx.destination);
-          osc.start(now + index * 0.08);
-          osc.stop(now + index * 0.08 + 1.2);
-        });
-      }
+    function playWhistleSound() {
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(1600, audioCtx.currentTime);
+      osc.frequency.linearRampToValueAtTime(2400, audioCtx.currentTime + 0.15);
+      osc.frequency.linearRampToValueAtTime(1800, audioCtx.currentTime + 0.35);
+      
+      gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.45);
+      
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.45);
     }
 
     function getActiveTeams() {
@@ -450,55 +504,42 @@
 
     function drawWheel() {
       const activeTeams = getActiveTeams();
-      ctx.clearRect(0, 0, 460, 460);
-
-      if (activeTeams.length === 0) return;
+      if (activeTeams.length === 0) {
+        ctx.clearRect(0, 0, 480, 480);
+        return;
+      }
 
       arc = Math.PI / (activeTeams.length / 2);
-      const outsideRadius = 210;
-      const textRadius = 140;
-      const insideRadius = 55;
+      ctx.clearRect(0, 0, 480, 480);
+
+      const outsideRadius = 220;
+      const textRadius = 150;
+      const insideRadius = 60;
 
       for (let i = 0; i < activeTeams.length; i++) {
         const angle = startAngle + i * arc;
+        const team = activeTeams[i];
         
-        ctx.fillStyle = activeTeams[i].color;
+        ctx.fillStyle = team.color;
 
         ctx.beginPath();
-        ctx.arc(230, 230, outsideRadius, angle, angle + arc, false);
-        ctx.arc(230, 230, insideRadius, angle + arc, angle, true);
-        ctx.strokeStyle = "rgba(212, 175, 55, 0.4)";
+        ctx.arc(240, 240, outsideRadius, angle, angle + arc, false);
+        ctx.arc(240, 240, insideRadius, angle + arc, angle, true);
+        ctx.strokeStyle = "rgba(212, 175, 55, 0.35)";
         ctx.lineWidth = 2;
         ctx.stroke();
         ctx.fill();
 
         ctx.save();
         ctx.fillStyle = "#d4af37";
-        const teamFontFamily = getComputedStyle(document.documentElement).getPropertyValue('--team-font');
-        ctx.font = `700 15px ${teamFontFamily}`;
-        ctx.translate(230 + Math.cos(angle + arc / 2) * textRadius, 
-                      230 + Math.sin(angle + arc / 2) * textRadius);
+        ctx.font = `700 16px ${team.font}`;
+        ctx.translate(240 + Math.cos(angle + arc / 2) * textRadius, 
+                      240 + Math.sin(angle + arc / 2) * textRadius);
         ctx.rotate(angle + arc / 2 + Math.PI / 2);
-        const text = activeTeams[i].name;
+        const text = team.name;
         ctx.fillText(text, -ctx.measureText(text).width / 2, 0);
         ctx.restore();
       }
-
-      // Draw Center PNG / Cap
-      ctx.save();
-      ctx.beginPath();
-      ctx.arc(230, 230, insideRadius, 0, Math.PI * 2);
-      ctx.fillStyle = "#090a0f";
-      ctx.fill();
-      ctx.strokeStyle = "rgba(212, 175, 55, 0.8)";
-      ctx.lineWidth = 3;
-      ctx.stroke();
-
-      if (hasCenterLogo) {
-        ctx.clip();
-        ctx.drawImage(centerLogoImg, 230 - insideRadius, 230 - insideRadius, insideRadius * 2, insideRadius * 2);
-      }
-      ctx.restore();
     }
 
     function rotateWheel() {
@@ -532,9 +573,11 @@
       const index = Math.floor((360 - degrees % 360) / arcd);
       
       const winner = activeTeams[(index + activeTeams.length) % activeTeams.length];
-      currentWinnerId = winner.id;
+      selectedWinnerId = winner.id;
 
       document.getElementById('winnerName').innerText = winner.name;
+      document.getElementById('winnerName').style.fontFamily = winner.font;
+      
       const logoImg = document.getElementById('winnerLogo');
       if (winner.logo) {
         logoImg.src = winner.logo;
@@ -545,15 +588,38 @@
 
       document.getElementById('winnerModal').style.display = 'flex';
       
-      playVictoryAudio();
+      playWhistleSound();
+      
+      // Announce Team Name (Voice or Custom Audio File)
+      if (winner.audio) {
+        const audio = new Audio(winner.audio);
+        audio.play();
+      } else if ('speechSynthesis' in window) {
+        const msg = new SpeechSynthesisUtterance(winner.name);
+        msg.rate = 0.9;
+        msg.pitch = 1.1;
+        window.speechSynthesis.speak(msg);
+      }
 
-      // Golden Popper Effect
-      confetti({
-        particleCount: 130,
-        spread: 90,
-        origin: { y: 0.6 },
-        colors: ['#d4af37', '#ffffff', '#aa7c11', '#ff0055']
-      });
+      // Grand Popper / Fireworks Celebration
+      triggerGrandPopper();
+    }
+
+    function triggerGrandPopper() {
+      const count = 200;
+      const defaults = { origin: { y: 0.7 } };
+
+      function fire(particleRatio, opts) {
+        confetti(Object.assign({}, defaults, opts, {
+          particleCount: Math.floor(count * particleRatio)
+        }));
+      }
+
+      fire(0.25, { spread: 26, startVelocity: 55, colors: ['#d4af37', '#ffffff'] });
+      fire(0.2, { spread: 60, colors: ['#ff0055', '#00e5ff'] });
+      fire(0.35, { spread: 100, decay: 0.91, scalar: 0.8 });
+      fire(0.1, { spread: 120, startVelocity: 25, decay: 0.92, scalar: 1.2 });
+      fire(0.1, { spread: 120, startVelocity: 45 });
     }
 
     function easeOut(t, b, c, d) {
@@ -564,8 +630,8 @@
 
     function spin() {
       const activeTeams = getActiveTeams();
-      if (activeTeams.length < 1) {
-        alert("No active teams left to spin!");
+      if (activeTeams.length < 2) {
+        alert("Please tick at least 2 teams from Committee Portal!");
         return;
       }
       spinAngleStart = Math.random() * 10 + 12;
@@ -577,17 +643,17 @@
     function closeModal() {
       document.getElementById('winnerModal').style.display = 'none';
       
-      // Auto Remove Winner Team Option
-      const shouldRemove = document.getElementById('autoRemoveToggle').checked;
-      if (shouldRemove && currentWinnerId !== null) {
-        const team = teamsData.find(t => t.id === currentWinnerId);
+      // Auto-remove Winner if enabled
+      const autoRemove = document.getElementById('autoRemoveCheck').checked;
+      if (autoRemove && selectedWinnerId !== null) {
+        const team = teamsData.find(t => t.id === selectedWinnerId);
         if (team) team.enabled = false;
         if (isCommitteeUnlocked) renderCommitteeList();
         drawWheel();
       }
     }
 
-    /* Committee Controls Functions */
+    /* Committee Portal Logic */
     function toggleCommitteePortal() {
       if (!isCommitteeUnlocked) {
         const pass = prompt("Enter Committee Password:");
@@ -604,6 +670,26 @@
       }
     }
 
+    function updateBranding() {
+      const title = document.getElementById('festNameInput').value;
+      const titleFont = document.getElementById('festFontSelect').value;
+      const titleColor = document.getElementById('festColorInput').value;
+
+      const tag = document.getElementById('festTagInput').value;
+      const tagFont = document.getElementById('tagFontSelect').value;
+      const tagColor = document.getElementById('tagColorInput').value;
+
+      const titleDisp = document.getElementById('festTitleDisplay');
+      titleDisp.innerText = title;
+      titleDisp.style.fontFamily = titleFont;
+      titleDisp.style.color = titleColor;
+
+      const tagDisp = document.getElementById('festTaglineDisplay');
+      tagDisp.innerText = tag;
+      tagDisp.style.fontFamily = tagFont;
+      tagDisp.style.color = tagColor;
+    }
+
     function renderCommitteeList() {
       const container = document.getElementById('teamsControlList');
       container.innerHTML = '';
@@ -613,10 +699,22 @@
         row.className = 'team-item';
         row.innerHTML = `
           <input type="checkbox" ${team.enabled ? 'checked' : ''} onchange="toggleTeam(${team.id})">
-          <input type="text" value="${team.name}" oninput="updateTeamName(${team.id}, this.value)">
+          <input type="text" value="${team.name}" oninput="updateTeamName(${team.id}, this.value)" placeholder="Team Name">
           <input type="color" value="${team.color}" onchange="updateTeamColor(${team.id}, this.value)">
-          <input type="file" accept="image/png, image/jpeg" onchange="uploadLogo(${team.id}, event)">
-          <span style="font-size: 0.75rem; color: #9ca3af;">${team.logo ? 'Logo Added' : 'No Logo'}</span>
+          <select onchange="updateTeamFont(${team.id}, this.value)">
+            <option value="'Montserrat', sans-serif" ${team.font.includes('Montserrat') ? 'selected':''}>Montserrat</option>
+            <option value="'Cinzel', serif" ${team.font.includes('Cinzel') ? 'selected':''}>Cinzel</option>
+            <option value="'Bebas Neue', sans-serif" ${team.font.includes('Bebas') ? 'selected':''}>Bebas Neue</option>
+            <option value="'Playfair Display', serif" ${team.font.includes('Playfair') ? 'selected':''}>Playfair</option>
+          </select>
+          <div class="control-group">
+            <label>Logo PNG</label>
+            <input type="file" accept="image/png, image/jpeg" onchange="uploadLogo(${team.id}, event)">
+          </div>
+          <div class="control-group">
+            <label>Custom Announce MP3</label>
+            <input type="file" accept="audio/*" onchange="uploadAudio(${team.id}, event)">
+          </div>
         `;
         container.appendChild(row);
       });
@@ -634,9 +732,15 @@
       drawWheel();
     }
 
-    function updateTeamColor(id, color) {
+    function updateTeamColor(id, val) {
       const team = teamsData.find(t => t.id === id);
-      if (team) team.color = color;
+      if (team) team.color = val;
+      drawWheel();
+    }
+
+    function updateTeamFont(id, val) {
+      const team = teamsData.find(t => t.id === id);
+      if (team) team.font = val;
       drawWheel();
     }
 
@@ -647,7 +751,31 @@
         reader.onload = function(e) {
           const team = teamsData.find(t => t.id === id);
           if (team) team.logo = e.target.result;
-          renderCommitteeList();
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function uploadAudio(id, event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const team = teamsData.find(t => t.id === id);
+          if (team) team.audio = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function uploadCornerLogo(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const img = document.getElementById('cornerLogoImg');
+          img.src = e.target.result;
+          img.style.display = 'block';
         };
         reader.readAsDataURL(file);
       }
@@ -658,34 +786,12 @@
       if (file) {
         const reader = new FileReader();
         reader.onload = function(e) {
-          centerLogoImg.src = e.target.result;
-          centerLogoImg.onload = function() {
-            hasCenterLogo = true;
-            drawWheel();
-          };
+          const img = document.getElementById('wheelCenterLogoImg');
+          img.src = e.target.result;
+          img.style.display = 'block';
         };
         reader.readAsDataURL(file);
       }
-    }
-
-    function uploadCustomAudio(event) {
-      const file = event.target.files[0];
-      if (file) {
-        customAudioURL = URL.createObjectURL(file);
-      }
-    }
-
-    function updateFestName(val) {
-      document.getElementById('displayFestName').innerText = val || 'ART FEST';
-    }
-
-    function changeFestFont(font) {
-      document.documentElement.style.setProperty('--fest-font', font);
-    }
-
-    function changeTeamFont(font) {
-      document.documentElement.style.setProperty('--team-font', font);
-      drawWheel();
     }
 
     drawWheel();

@@ -221,6 +221,20 @@
       margin: 20px 0 12px 0;
       border-left: 3px solid var(--accent-color);
       padding-left: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .add-team-btn {
+      background: #10b981;
+      color: #fff;
+      border: none;
+      padding: 6px 16px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 0.8rem;
     }
 
     .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; }
@@ -258,17 +272,27 @@
 
     .team-item {
       display: grid;
-      grid-template-columns: 35px 1.5fr 70px 120px 1.2fr 1.2fr;
-      gap: 10px;
+      grid-template-columns: 30px 1.5fr 60px 110px 1fr 1fr 40px;
+      gap: 8px;
       align-items: center;
       background: rgba(255,255,255,0.02);
-      padding: 12px;
+      padding: 10px;
       border-radius: 10px;
       margin-bottom: 10px;
       border: 1px solid rgba(255,255,255,0.05);
     }
 
-    .team-item input[type="file"] { font-size: 0.75rem; color: #9ca3af; }
+    .team-item input[type="file"] { font-size: 0.7rem; color: #9ca3af; }
+
+    .delete-btn {
+      background: #ef4444;
+      color: #fff;
+      border: none;
+      padding: 8px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+    }
 
     .winner-modal {
       display: none;
@@ -421,7 +445,10 @@
         </div>
       </div>
 
-      <div class="section-title">3. Teams Configuration (Tick to Include in Wheel)</div>
+      <div class="section-title">
+        <span>3. Teams Configuration</span>
+        <button class="add-team-btn" onclick="addNewTeam()">+ Add New Team</button>
+      </div>
       <div id="teamsControlList"></div>
     </div>
   </div>
@@ -454,35 +481,33 @@
     let startAngle = 0;
     let arc = 0;
     let spinTimeout = null;
-    let spinAngleStart = 25;
+    let spinAngleStart = 0;
     let spinTime = 0;
     let spinTimeTotal = 0;
 
-    function getAllTeams() {
-      return teamsData.filter(t => t.name.trim() !== "");
-    }
-
-    function getEligibleTeams() {
+    function getActiveTeams() {
       return teamsData.filter(t => t.enabled && t.name.trim() !== "");
     }
 
     function drawWheel() {
-      const allTeams = getAllTeams();
-      if (allTeams.length === 0) {
-        ctx.clearRect(0, 0, 480, 480);
+      const activeTeams = getActiveTeams();
+      ctx.clearRect(0, 0, 480, 480);
+
+      if (activeTeams.length === 0) {
+        ctx.fillStyle = "#d4af37";
+        ctx.font = "16px 'Montserrat', sans-serif";
+        ctx.fillText("No Teams Selected", 170, 240);
         return;
       }
 
-      arc = Math.PI / (allTeams.length / 2);
-      ctx.clearRect(0, 0, 480, 480);
-
+      arc = (2 * Math.PI) / activeTeams.length;
       const outsideRadius = 220;
       const textRadius = 150;
       const insideRadius = 60;
 
-      for (let i = 0; i < allTeams.length; i++) {
+      for (let i = 0; i < activeTeams.length; i++) {
         const angle = startAngle + i * arc;
-        const team = allTeams[i];
+        const team = activeTeams[i];
         
         ctx.fillStyle = team.color;
 
@@ -496,7 +521,7 @@
 
         ctx.save();
         ctx.fillStyle = "#d4af37";
-        ctx.font = `700 16px ${team.font}`;
+        ctx.font = `700 15px ${team.font}`;
         ctx.translate(240 + Math.cos(angle + arc / 2) * textRadius, 
                       240 + Math.sin(angle + arc / 2) * textRadius);
         ctx.rotate(angle + arc / 2 + Math.PI / 2);
@@ -524,14 +549,16 @@
       isSpinning = false;
       document.getElementById('spinBtn').disabled = false;
 
-      const allTeams = getAllTeams();
+      const activeTeams = getActiveTeams();
       
-      const degrees = (startAngle * 180 / Math.PI) % 360;
-      const arcd = (arc * 180 / Math.PI);
-      let index = Math.floor((360 - (degrees % 360)) / arcd);
-      if (index >= allTeams.length) index = 0;
+      // Calculate exact winner under top pointer (270 degrees / 1.5 * PI)
+      let degrees = (startAngle * 180 / Math.PI) % 360;
+      if (degrees < 0) degrees += 360;
 
-      const winner = allTeams[index];
+      const arcd = (arc * 180 / Math.PI);
+      let index = Math.floor((270 - degrees + 360) % 360 / arcd);
+      
+      const winner = activeTeams[index];
       selectedWinnerId = winner.id;
 
       document.getElementById('winnerName').innerText = winner.name;
@@ -547,13 +574,11 @@
 
       document.getElementById('winnerModal').style.display = 'flex';
 
-      // Custom Audio Play
       if (winner.audio) {
         const audio = new Audio(winner.audio);
         audio.play();
       }
 
-      // Immediate Popper
       triggerGrandPopper();
     }
 
@@ -583,8 +608,8 @@
     function spin() {
       if (isSpinning) return;
 
-      const eligibleTeams = getEligibleTeams();
-      if (eligibleTeams.length === 0) {
+      const activeTeams = getActiveTeams();
+      if (activeTeams.length === 0) {
         alert("Please tick at least 1 team in Committee Portal to spin!");
         return;
       }
@@ -592,22 +617,22 @@
       isSpinning = true;
       document.getElementById('spinBtn').disabled = true;
 
-      const allTeams = getAllTeams();
-      const chosenWinner = eligibleTeams[Math.floor(Math.random() * eligibleTeams.length)];
-      const targetIndex = allTeams.findIndex(t => t.id === chosenWinner.id);
+      // Random target among active teams
+      const winnerIndex = Math.floor(Math.random() * activeTeams.length);
 
-      const segmentAngle = 360 / allTeams.length;
+      const segmentAngle = 360 / activeTeams.length;
+      const targetMiddle = (winnerIndex * segmentAngle) + (segmentAngle / 2);
       
-      // Calculate exact angle to hit target team segment accurately under pointer
-      const targetMiddle = (targetIndex * segmentAngle) + (segmentAngle / 2);
       let targetDegrees = 270 - targetMiddle;
       while (targetDegrees < 0) targetDegrees += 360;
 
-      const currentDegrees = (startAngle * 180 / Math.PI) % 360;
+      let currentDegrees = (startAngle * 180 / Math.PI) % 360;
+      if (currentDegrees < 0) currentDegrees += 360;
+
       let deltaDegrees = targetDegrees - currentDegrees;
       while (deltaDegrees < 0) deltaDegrees += 360;
 
-      const extraRounds = 360 * 8; // 8 fast spins
+      const extraRounds = 360 * 6; // 6 fast spins
       const totalRotationNeeded = extraRounds + deltaDegrees;
 
       spinAngleStart = (totalRotationNeeded / 100) * 2;
@@ -624,8 +649,9 @@
       if (autoRemove && selectedWinnerId !== null) {
         const team = teamsData.find(t => t.id === selectedWinnerId);
         if (team) {
-          team.enabled = false; // Disable (untick) selected winner
+          team.enabled = false; // Untick selected winner so it's removed from wheel
         }
+        drawWheel();
         if (isCommitteeUnlocked) {
           renderCommitteeList();
         }
@@ -705,6 +731,7 @@
             <label>Custom Announce MP3</label>
             <input type="file" accept="audio/*" onchange="uploadAudio(${team.id}, event)">
           </div>
+          <button class="delete-btn" onclick="deleteTeam(${team.id})">🗑️</button>
         `;
         container.appendChild(row);
       });
@@ -712,7 +739,10 @@
 
     function toggleTeam(id) {
       const team = teamsData.find(t => t.id === id);
-      if (team) team.enabled = !team.enabled;
+      if (team) {
+        team.enabled = !team.enabled;
+        drawWheel();
+      }
     }
 
     function updateTeamName(id, val) {
@@ -731,6 +761,29 @@
       const team = teamsData.find(t => t.id === id);
       if (team) team.font = val;
       drawWheel();
+    }
+
+    function addNewTeam() {
+      const newId = teamsData.length > 0 ? Math.max(...teamsData.map(t => t.id)) + 1 : 1;
+      teamsData.push({
+        id: newId,
+        name: `NEW TEAM ${newId}`,
+        color: "#0f172a",
+        font: "'Montserrat', sans-serif",
+        enabled: true,
+        logo: "",
+        audio: null
+      });
+      renderCommitteeList();
+      drawWheel();
+    }
+
+    function deleteTeam(id) {
+      if (confirm("Are you sure you want to delete this team?")) {
+        teamsData = teamsData.filter(t => t.id !== id);
+        renderCommitteeList();
+        drawWheel();
+      }
     }
 
     function uploadLogo(id, event) {

@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>BAHJA-26 | Executive Team Selector Portal</title>
   
-  <!-- Premium Executive Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Bruno+Ace+SC&family=Cinzel:wght@700;900&family=Montserrat:wght@600;800&family=Playfair+Display:ital,wght@0,700;1,700&family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
@@ -36,7 +35,6 @@
       overflow-x: hidden;
     }
 
-    /* Web Corner Branding Logo */
     .corner-logo-box {
       position: absolute;
       top: 25px;
@@ -74,10 +72,16 @@
       text-transform: uppercase;
     }
 
-    .admin-toggle-btn {
+    .nav-btns {
       position: absolute;
       top: 25px;
       right: 25px;
+      display: flex;
+      gap: 12px;
+      z-index: 100;
+    }
+
+    .fullscreen-toggle-btn, .admin-toggle-btn {
       background: rgba(255, 255, 255, 0.05);
       border: 1px solid var(--border-color);
       color: var(--accent-color);
@@ -89,10 +93,11 @@
       letter-spacing: 1px;
       backdrop-filter: blur(10px);
       transition: all 0.3s;
-      z-index: 100;
     }
 
-    .admin-toggle-btn:hover {
+    .fullscreen-toggle-btn { color: #fff; }
+
+    .fullscreen-toggle-btn:hover, .admin-toggle-btn:hover {
       background: var(--accent-color);
       color: #000;
       box-shadow: 0 0 20px rgba(212, 175, 55, 0.5);
@@ -107,7 +112,6 @@
       max-width: 1200px;
     }
 
-    /* Wheel Area & Center Logo */
     .wheel-container {
       position: relative;
       padding: 18px;
@@ -181,7 +185,6 @@
       box-shadow: 0 15px 40px rgba(212, 175, 55, 0.6);
     }
 
-    /* Committee Drawer Controls */
     .committee-panel {
       display: none;
       width: 100%;
@@ -215,7 +218,6 @@
       padding-left: 10px;
     }
 
-    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
     .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; }
 
     .control-group {
@@ -249,7 +251,6 @@
       background: transparent;
     }
 
-    /* Team Custom Table */
     .team-item {
       display: grid;
       grid-template-columns: 35px 1.5fr 70px 120px 1.2fr 1.2fr;
@@ -264,7 +265,6 @@
 
     .team-item input[type="file"] { font-size: 0.75rem; color: #9ca3af; }
 
-    /* Grand Winner Popup */
     .winner-modal {
       display: none;
       position: fixed;
@@ -325,12 +325,14 @@
 </head>
 <body>
 
-  <!-- Web Corner Logo -->
   <div class="corner-logo-box">
     <img id="cornerLogoImg" class="corner-logo" src="" alt="" style="display: none;" />
   </div>
 
-  <button class="admin-toggle-btn" onclick="toggleCommitteePortal()">🔒 COMMITTEE PORTAL</button>
+  <div class="nav-btns">
+    <button class="fullscreen-toggle-btn" onclick="toggleFullScreen()">⛶ FULLSCREEN</button>
+    <button class="admin-toggle-btn" onclick="toggleCommitteePortal()">🔒 COMMITTEE PORTAL</button>
+  </div>
 
   <header>
     <h1 class="fest-title" id="festTitleDisplay">BAHJA-26</h1>
@@ -338,7 +340,6 @@
   </header>
 
   <div class="main-wrapper">
-    <!-- Public Phase: Wheel Display -->
     <div class="wheel-container">
       <div class="pointer"></div>
       <canvas id="wheel" width="480" height="480"></canvas>
@@ -349,14 +350,12 @@
 
     <button class="spin-trigger-btn" onclick="spin()">SPIN WHEEL 🎡</button>
 
-    <!-- Committee Protected Portal Controls -->
     <div class="committee-panel" id="committeePanel">
       <div class="panel-header">
         <span>Committee Administrative Control</span>
         <span style="font-size: 0.8rem; color: #10b981;">✓ Access Granted</span>
       </div>
 
-      <!-- 1. Fest Header & Branding Customization -->
       <div class="section-title">1. Fest Branding & Typography</div>
       <div class="grid-3" style="margin-bottom: 15px;">
         <div class="control-group">
@@ -398,7 +397,6 @@
         </div>
       </div>
 
-      <!-- 2. Logos & Auto-Remove Switch -->
       <div class="section-title">2. Logos & Rules Settings</div>
       <div class="grid-3">
         <div class="control-group">
@@ -418,13 +416,11 @@
         </div>
       </div>
 
-      <!-- 3. Teams Manager Table -->
-      <div class="section-title">3. Teams Configuration (Tick to Include in Wheel)</div>
+      <div class="section-title">3. Teams Configuration (Tick to Include in Winner Pool)</div>
       <div id="teamsControlList"></div>
     </div>
   </div>
 
-  <!-- Winner Modal -->
   <div class="winner-modal" id="winnerModal">
     <div class="winner-card">
       <p style="color: var(--accent-color); letter-spacing: 3px; font-size: 0.85rem; text-transform: uppercase;">Selected Winner Team</p>
@@ -435,7 +431,6 @@
   </div>
 
   <script>
-    // Teams Master Data Structure
     let teamsData = [
       { id: 1, name: "ESPERENZA", color: "#1e293b", font: "'Montserrat', sans-serif", enabled: true, logo: "", audio: null },
       { id: 2, name: "LUMINOSA", color: "#334155", font: "'Montserrat', sans-serif", enabled: true, logo: "", audio: null },
@@ -456,69 +451,33 @@
     let spinAngleStart = 10;
     let spinTime = 0;
     let spinTimeTotal = 0;
-    let lastAngleIndex = -1;
+    let targetIndex = -1;
 
-    // Web Audio System
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
-    function playTickSound() {
-      if (audioCtx.state === 'suspended') audioCtx.resume();
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(220, audioCtx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + 0.035);
-      
-      gain.gain.setValueAtTime(0.35, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.035);
-      
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      osc.start();
-      osc.stop(audioCtx.currentTime + 0.035);
+    function getAllTeams() {
+      return teamsData.filter(t => t.name.trim() !== "");
     }
 
-    function playWhistleSound() {
-      if (audioCtx.state === 'suspended') audioCtx.resume();
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(1600, audioCtx.currentTime);
-      osc.frequency.linearRampToValueAtTime(2400, audioCtx.currentTime + 0.15);
-      osc.frequency.linearRampToValueAtTime(1800, audioCtx.currentTime + 0.35);
-      
-      gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.45);
-      
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      osc.start();
-      osc.stop(audioCtx.currentTime + 0.45);
-    }
-
-    function getActiveTeams() {
+    function getEligibleTeams() {
       return teamsData.filter(t => t.enabled && t.name.trim() !== "");
     }
 
     function drawWheel() {
-      const activeTeams = getActiveTeams();
-      if (activeTeams.length === 0) {
+      const allTeams = getAllTeams();
+      if (allTeams.length === 0) {
         ctx.clearRect(0, 0, 480, 480);
         return;
       }
 
-      arc = Math.PI / (activeTeams.length / 2);
+      arc = Math.PI / (allTeams.length / 2);
       ctx.clearRect(0, 0, 480, 480);
 
       const outsideRadius = 220;
       const textRadius = 150;
       const insideRadius = 60;
 
-      for (let i = 0; i < activeTeams.length; i++) {
+      for (let i = 0; i < allTeams.length; i++) {
         const angle = startAngle + i * arc;
-        const team = activeTeams[i];
+        const team = allTeams[i];
         
         ctx.fillStyle = team.color;
 
@@ -552,27 +511,14 @@
       startAngle += (spinAngle * Math.PI / 180);
       drawWheel();
 
-      const activeTeams = getActiveTeams();
-      const degrees = startAngle * 180 / Math.PI + 90;
-      const arcd = arc * 180 / Math.PI;
-      const currentIdx = Math.floor((360 - degrees % 360) / arcd) % activeTeams.length;
-      
-      if (currentIdx !== lastAngleIndex) {
-        playTickSound();
-        lastAngleIndex = currentIdx;
-      }
-
       spinTimeout = setTimeout(rotateWheel, 30);
     }
 
     function stopRotateWheel() {
       clearTimeout(spinTimeout);
-      const activeTeams = getActiveTeams();
-      const degrees = startAngle * 180 / Math.PI + 90;
-      const arcd = arc * 180 / Math.PI;
-      const index = Math.floor((360 - degrees % 360) / arcd);
+      const allTeams = getAllTeams();
       
-      const winner = activeTeams[(index + activeTeams.length) % activeTeams.length];
+      const winner = allTeams[targetIndex];
       selectedWinnerId = winner.id;
 
       document.getElementById('winnerName').innerText = winner.name;
@@ -587,27 +533,20 @@
       }
 
       document.getElementById('winnerModal').style.display = 'flex';
-      
-      playWhistleSound();
-      
-      // Announce Team Name (Voice or Custom Audio File)
+
+      // Play Uploaded Custom Audio Only
       if (winner.audio) {
         const audio = new Audio(winner.audio);
         audio.play();
-      } else if ('speechSynthesis' in window) {
-        const msg = new SpeechSynthesisUtterance(winner.name);
-        msg.rate = 0.9;
-        msg.pitch = 1.1;
-        window.speechSynthesis.speak(msg);
       }
 
-      // Grand Popper / Fireworks Celebration
+      // Trigger Immediate Grand Popper
       triggerGrandPopper();
     }
 
     function triggerGrandPopper() {
-      const count = 200;
-      const defaults = { origin: { y: 0.7 } };
+      const count = 250;
+      const defaults = { origin: { y: 0.6 } };
 
       function fire(particleRatio, opts) {
         confetti(Object.assign({}, defaults, opts, {
@@ -615,11 +554,11 @@
         }));
       }
 
-      fire(0.25, { spread: 26, startVelocity: 55, colors: ['#d4af37', '#ffffff'] });
-      fire(0.2, { spread: 60, colors: ['#ff0055', '#00e5ff'] });
-      fire(0.35, { spread: 100, decay: 0.91, scalar: 0.8 });
-      fire(0.1, { spread: 120, startVelocity: 25, decay: 0.92, scalar: 1.2 });
-      fire(0.1, { spread: 120, startVelocity: 45 });
+      fire(0.25, { spread: 35, startVelocity: 60, colors: ['#d4af37', '#ffffff'] });
+      fire(0.2, { spread: 70, colors: ['#ff0055', '#00e5ff'] });
+      fire(0.35, { spread: 110, decay: 0.91, scalar: 0.9 });
+      fire(0.1, { spread: 130, startVelocity: 30, decay: 0.92, scalar: 1.2 });
+      fire(0.1, { spread: 130, startVelocity: 50 });
     }
 
     function easeOut(t, b, c, d) {
@@ -629,31 +568,42 @@
     }
 
     function spin() {
-      const activeTeams = getActiveTeams();
-      if (activeTeams.length < 2) {
-        alert("Please tick at least 2 teams from Committee Portal!");
+      const eligibleTeams = getEligibleTeams();
+      if (eligibleTeams.length === 0) {
+        alert("Please tick at least 1 team in Committee Portal to be selected!");
         return;
       }
-      spinAngleStart = Math.random() * 10 + 12;
+
+      const allTeams = getAllTeams();
+      const chosenWinner = eligibleTeams[Math.floor(Math.random() * eligibleTeams.length)];
+      targetIndex = allTeams.findIndex(t => t.id === chosenWinner.id);
+
+      const segmentAngle = 360 / allTeams.length;
+      const targetAngleDegrees = 270 - (targetIndex * segmentAngle + segmentAngle / 2);
+      
+      const currentDegrees = (startAngle * 180 / Math.PI) % 360;
+      let extraTurns = 360 * 5;
+      
+      let finalDegrees = targetAngleDegrees - currentDegrees;
+      while (finalDegrees < 0) finalDegrees += 360;
+      
+      spinAngleStart = (extraTurns + finalDegrees) / 100;
       spinTime = 0;
-      spinTimeTotal = Math.random() * 3000 + 4000;
+      spinTimeTotal = 4000;
       rotateWheel();
     }
 
     function closeModal() {
       document.getElementById('winnerModal').style.display = 'none';
       
-      // Auto-remove Winner if enabled
       const autoRemove = document.getElementById('autoRemoveCheck').checked;
       if (autoRemove && selectedWinnerId !== null) {
         const team = teamsData.find(t => t.id === selectedWinnerId);
         if (team) team.enabled = false;
         if (isCommitteeUnlocked) renderCommitteeList();
-        drawWheel();
       }
     }
 
-    /* Committee Portal Logic */
     function toggleCommitteePortal() {
       if (!isCommitteeUnlocked) {
         const pass = prompt("Enter Committee Password:");
@@ -667,6 +617,18 @@
       } else {
         const panel = document.getElementById('committeePanel');
         panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+      }
+    }
+
+    function toggleFullScreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => {
+          alert(`Full Screen error: ${err.message}`);
+        });
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        }
       }
     }
 
@@ -723,7 +685,6 @@
     function toggleTeam(id) {
       const team = teamsData.find(t => t.id === id);
       if (team) team.enabled = !team.enabled;
-      drawWheel();
     }
 
     function updateTeamName(id, val) {

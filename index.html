@@ -1,243 +1,919 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Preset Winners Wheel</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BAHJA-26 | Executive Team Selector Portal</title>
+  
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Bruno+Ace+SC&family=Cinzel:wght@700;900&family=Montserrat:wght@600;800&family=Playfair+Display:ital,wght@0,700;1,700&family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
   <style>
+    :root {
+      --bg-gradient: linear-gradient(135deg, #07090e 0%, #0f172a 100%);
+      --accent-color: #d4af37;
+      --card-bg: rgba(255, 255, 255, 0.03);
+      --border-color: rgba(212, 175, 55, 0.25);
+      
+      --fest-title-font: 'Cinzel', serif;
+      --fest-title-color: #d4af37;
+      --fest-tag-font: 'Plus Jakarta Sans', sans-serif;
+      --fest-tag-color: #9ca3af;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
+    
     body {
-      font-family: Arial, sans-serif;
-      background: #1e1e2e;
-      color: #fff;
+      background: var(--bg-gradient);
+      color: #f3f4f6;
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 20px;
+      padding: 30px 20px;
+      position: relative;
+      overflow-x: hidden;
     }
 
-    .container {
+    .corner-logo-box {
+      position: absolute;
+      top: 25px;
+      left: 25px;
+      z-index: 100;
+    }
+    .corner-logo {
+      max-height: 75px;
+      max-width: 180px;
+      object-fit: contain;
+      filter: drop-shadow(0 4px 10px rgba(0,0,0,0.6));
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 30px;
+      margin-top: 10px;
+    }
+
+    .fest-title {
+      font-family: var(--fest-title-font);
+      color: var(--fest-title-color);
+      font-size: 3.2rem;
+      letter-spacing: 3px;
+      text-shadow: 0 0 30px rgba(212, 175, 55, 0.3);
+      transition: all 0.3s;
+    }
+
+    .fest-subtitle {
+      font-family: var(--fest-tag-font);
+      color: var(--fest-tag-color);
+      font-size: 1.05rem;
+      letter-spacing: 5px;
+      margin-top: 5px;
+      text-transform: uppercase;
+    }
+
+    .nav-btns {
+      position: absolute;
+      top: 25px;
+      right: 25px;
       display: flex;
-      flex-wrap: wrap;
+      gap: 12px;
+      z-index: 100;
+    }
+
+    .fullscreen-toggle-btn, .admin-toggle-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-color);
+      color: var(--accent-color);
+      padding: 10px 20px;
+      border-radius: 30px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      backdrop-filter: blur(10px);
+      transition: all 0.3s;
+    }
+
+    .fullscreen-toggle-btn { color: #fff; }
+
+    .fullscreen-toggle-btn:hover, .admin-toggle-btn:hover {
+      background: var(--accent-color);
+      color: #000;
+      box-shadow: 0 0 20px rgba(212, 175, 55, 0.5);
+    }
+
+    .main-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
       gap: 30px;
-      justify-content: center;
-      align-items: flex-start;
-      margin-top: 20px;
+      width: 100%;
+      max-width: 1200px;
     }
 
     .wheel-container {
       position: relative;
-      width: 360px;
-      height: 360px;
+      padding: 18px;
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 50%;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+      backdrop-filter: blur(20px);
     }
 
-    /* Top Indicator Arrow */
     .pointer {
       position: absolute;
-      top: -15px;
+      top: 3px;
       left: 50%;
       transform: translateX(-50%);
+      z-index: 20;
       width: 0;
       height: 0;
-      border-left: 15px solid transparent;
-      border-right: 15px solid transparent;
-      border-top: 25px solid #ff4757;
-      z-index: 10;
+      border-left: 18px solid transparent;
+      border-right: 18px solid transparent;
+      border-top: 36px solid var(--accent-color);
+      filter: drop-shadow(0 4px 10px rgba(0,0,0,0.8));
     }
 
     canvas {
+      border-radius: 50%;
+      display: block;
+    }
+
+    .wheel-center-logo {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background: #0f172a;
+      border: 3px solid var(--accent-color);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 10;
+      overflow: hidden;
+      box-shadow: 0 0 20px rgba(0,0,0,0.8);
+    }
+
+    .wheel-center-logo img {
       width: 100%;
       height: 100%;
-      border-radius: 50%;
-      box-shadow: 0 0 20px rgba(0,0,0,0.5);
+      object-fit: cover;
     }
 
-    .controls {
-      background: #2d2d44;
-      padding: 20px;
-      border-radius: 12px;
-      width: 300px;
-    }
-
-    label {
-      font-size: 14px;
-      font-weight: bold;
-      display: block;
-      margin-top: 10px;
-      margin-bottom: 5px;
-    }
-
-    textarea, input {
-      width: 90%;
-      padding: 8px;
-      border-radius: 6px;
-      border: 1px solid #444;
-      background: #1e1e2e;
-      color: #fff;
-    }
-
-    button {
-      margin-top: 15px;
-      width: 100%;
-      padding: 12px;
-      background: #2ed573;
+    .spin-trigger-btn {
+      background: linear-gradient(135deg, #d4af37 0%, #aa7c11 100%);
       border: none;
       color: #000;
-      font-weight: bold;
-      font-size: 16px;
+      font-size: 1.2rem;
+      font-weight: 800;
+      letter-spacing: 4px;
+      padding: 18px 55px;
+      border-radius: 40px;
+      cursor: pointer;
+      box-shadow: 0 10px 30px rgba(212, 175, 55, 0.4);
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+    }
+
+    .spin-trigger-btn:hover {
+      transform: translateY(-3px) scale(1.03);
+      box-shadow: 0 15px 40px rgba(212, 175, 55, 0.6);
+    }
+
+    .spin-trigger-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .committee-panel {
+      display: none;
+      width: 100%;
+      max-width: 1000px;
+      background: rgba(10, 14, 23, 0.96);
+      border: 1px solid var(--border-color);
+      border-radius: 24px;
+      padding: 35px;
+      backdrop-filter: blur(25px);
+      box-shadow: 0 30px 70px rgba(0,0,0,0.9);
+      margin-top: 20px;
+    }
+
+    .panel-header {
+      font-family: 'Cinzel', serif;
+      font-size: 1.5rem;
+      color: var(--accent-color);
+      margin-bottom: 25px;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .section-title {
+      font-size: 1.1rem;
+      color: var(--accent-color);
+      margin: 20px 0 12px 0;
+      border-left: 3px solid var(--accent-color);
+      padding-left: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .add-team-btn {
+      background: #10b981;
+      color: #fff;
+      border: none;
+      padding: 6px 16px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 0.8rem;
+    }
+
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; }
+
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .control-group label {
+      font-size: 0.8rem;
+      color: #9ca3af;
+      text-transform: uppercase;
+    }
+
+    input[type="text"], select {
+      background: #07090e;
+      border: 1px solid rgba(255,255,255,0.15);
+      color: #fff;
+      padding: 10px 14px;
+      border-radius: 8px;
+      outline: none;
+      font-size: 0.9rem;
+    }
+
+    input[type="color"] {
+      border: none;
+      width: 100%;
+      height: 40px;
       border-radius: 6px;
       cursor: pointer;
+      background: transparent;
     }
 
-    button:hover {
-      background: #26af5f;
+    .team-item {
+      display: grid;
+      grid-template-columns: 30px 1.5fr 60px 110px 1fr 1fr 40px;
+      gap: 8px;
+      align-items: center;
+      background: rgba(255,255,255,0.02);
+      padding: 10px;
+      border-radius: 10px;
+      margin-bottom: 10px;
+      border: 1px solid rgba(255,255,255,0.05);
     }
 
-    #result {
-      margin-top: 15px;
-      font-size: 18px;
+    .team-item input[type="file"] { font-size: 0.7rem; color: #9ca3af; }
+
+    .delete-btn {
+      background: #ef4444;
+      color: #fff;
+      border: none;
+      padding: 8px;
+      border-radius: 8px;
+      cursor: pointer;
       font-weight: bold;
+    }
+
+    .winner-modal {
+      display: none;
+      position: fixed;
+      top:0; left:0; width:100%; height:100%;
+      background: rgba(0,0,0,0.92);
+      backdrop-filter: blur(20px);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .winner-card {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, rgba(15, 23, 42, 0.98) 100%);
+      border: 2px solid var(--accent-color);
+      border-radius: 28px;
+      padding: 50px 70px;
       text-align: center;
-      color: #ffa502;
+      box-shadow: 0 0 100px rgba(212, 175, 55, 0.4);
+      max-width: 550px;
+      width: 90%;
+      position: relative;
+    }
+
+    .winner-logo {
+      width: 140px;
+      height: 140px;
+      object-fit: contain;
+      margin: 15px auto;
+      display: none;
+      filter: drop-shadow(0 10px 25px rgba(0,0,0,0.7));
+    }
+
+    .winner-title {
+      font-size: 3rem;
+      color: #fff;
+      margin: 15px 0;
+      text-transform: uppercase;
+    }
+
+    .close-modal-btn {
+      background: transparent;
+      border: 2px solid var(--accent-color);
+      color: var(--accent-color);
+      padding: 12px 40px;
+      border-radius: 30px;
+      cursor: pointer;
+      font-weight: 700;
+      letter-spacing: 2px;
+      transition: all 0.3s;
+    }
+
+    .close-modal-btn:hover {
+      background: var(--accent-color);
+      color: #000;
+      box-shadow: 0 0 25px rgba(212, 175, 55, 0.6);
     }
   </style>
 </head>
 <body>
 
-  <h2>Spin Wheel (Pre-set Winner Control)</h2>
+  <div class="corner-logo-box">
+    <img id="cornerLogoImg" class="corner-logo" src="" alt="" style="display: none;" />
+  </div>
 
-  <div class="container">
+  <div class="nav-btns">
+    <button class="fullscreen-toggle-btn" onclick="toggleFullScreen()">⛶ FULLSCREEN</button>
+    <button class="admin-toggle-btn" onclick="toggleCommitteePortal()">🔒 COMMITTEE PORTAL</button>
+  </div>
+
+  <header>
+    <h1 class="fest-title" id="festTitleDisplay">BAHJA-26</h1>
+    <p class="fest-subtitle" id="festTaglineDisplay">DARS Students Art Fest | Executive Selection</p>
+  </header>
+
+  <div class="main-wrapper">
     <div class="wheel-container">
       <div class="pointer"></div>
-      <canvas id="wheel" width="400" height="400"></canvas>
+      <canvas id="wheel" width="480" height="480"></canvas>
+      <div class="wheel-center-logo">
+        <img id="wheelCenterLogoImg" src="" alt="Logo" style="display: none;" />
+      </div>
     </div>
 
-    <div class="controls">
-      <label for="teams">Wheel Teams (Comma separated):</label>
-      <textarea id="teams" rows="3">Team A, Team B, Team C, Team D, Team E, Team F</textarea>
+    <button class="spin-trigger-btn" id="spinBtn" onclick="spin()">SPIN WHEEL 🎡</button>
 
-      <label for="preset">🎯 Pre-set Winners Sequence (Order):</label>
-      <input type="text" id="preset" placeholder="Team B, Team D, Team A">
-      <small style="color: #aaa; font-size: 11px;">Spins will land strictly in this order.</small>
+    <div class="committee-panel" id="committeePanel">
+      <div class="panel-header">
+        <span>Committee Administrative Control</span>
+        <span style="font-size: 0.8rem; color: #10b981;">✓ Access Granted</span>
+      </div>
 
-      <button id="spinBtn" onclick="spinWheel()">SPIN WHEEL 🎯</button>
-      <div id="result"></div>
+      <div class="section-title">1. Fest Branding & Typography</div>
+      <div class="grid-3" style="margin-bottom: 15px;">
+        <div class="control-group">
+          <label>Fest Name</label>
+          <input type="text" id="festNameInput" value="BAHJA-26" oninput="updateBranding()">
+        </div>
+        <div class="control-group">
+          <label>Fest Name Font</label>
+          <select id="festFontSelect" onchange="updateBranding()">
+            <option value="'Cinzel', serif">Cinzel (Royal Classic)</option>
+            <option value="'Bebas Neue', sans-serif">Bebas Neue (Bold & Tall)</option>
+            <option value="'Playfair Display', serif">Playfair Display (Elegant)</option>
+            <option value="'Bruno Ace SC', cursive">Bruno Ace (Futuristic)</option>
+            <option value="'Montserrat', sans-serif">Montserrat (Modern)</option>
+          </select>
+        </div>
+        <div class="control-group">
+          <label>Fest Name Color</label>
+          <input type="color" id="festColorInput" value="#d4af37" onchange="updateBranding()">
+        </div>
+      </div>
+
+      <div class="grid-3">
+        <div class="control-group">
+          <label>Tagline Text</label>
+          <input type="text" id="festTagInput" value="DARS Students Art Fest | Executive Selection" oninput="updateBranding()">
+        </div>
+        <div class="control-group">
+          <label>Tagline Font</label>
+          <select id="tagFontSelect" onchange="updateBranding()">
+            <option value="'Plus Jakarta Sans', sans-serif">Plus Jakarta Sans</option>
+            <option value="'Montserrat', sans-serif">Montserrat</option>
+            <option value="'Playfair Display', serif">Playfair Display</option>
+          </select>
+        </div>
+        <div class="control-group">
+          <label>Tagline Color</label>
+          <input type="color" id="tagColorInput" value="#9ca3af" onchange="updateBranding()">
+        </div>
+      </div>
+
+      <div class="section-title">2. Logos & Rules Settings</div>
+      <div class="grid-3">
+        <div class="control-group">
+          <label>Corner PNG Logo</label>
+          <input type="file" accept="image/png, image/jpeg" onchange="uploadCornerLogo(event)">
+        </div>
+        <div class="control-group">
+          <label>Wheel Center PNG Logo</label>
+          <input type="file" accept="image/png, image/jpeg" onchange="uploadCenterLogo(event)">
+        </div>
+        <div class="control-group">
+          <label>After Spin Rule</label>
+          <div style="display: flex; align-items: center; gap: 10px; margin-top: 8px;">
+            <input type="checkbox" id="autoRemoveCheck" style="width: 20px; height: 20px; cursor: pointer;">
+            <label for="autoRemoveCheck" style="font-size: 0.85rem; color: #fff;">Auto-remove Selected Winner Team</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-title">3. Pre-set Winners Sequence 🎯 (3 Teams Control)</div>
+      <div class="grid-3" style="background: rgba(212, 175, 55, 0.05); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color);">
+        <div class="control-group">
+          <label style="color: #d4af37; font-weight: bold;">🥇 1st Spin Winner</label>
+          <select id="winner1Select" style="border: 1px solid var(--accent-color);">
+            <option value="none">-- Select 1st Winner --</option>
+          </select>
+        </div>
+        <div class="control-group">
+          <label style="color: #d4af37; font-weight: bold;">🥈 2nd Spin Winner</label>
+          <select id="winner2Select" style="border: 1px solid var(--accent-color);">
+            <option value="none">-- Select 2nd Winner --</option>
+          </select>
+        </div>
+        <div class="control-group">
+          <label style="color: #d4af37; font-weight: bold;">🥉 3rd Spin Winner</label>
+          <select id="winner3Select" style="border: 1px solid var(--accent-color);">
+            <option value="none">-- Select 3rd Winner --</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="section-title">
+        <span>4. Teams Configuration (Tick to Include on Wheel)</span>
+        <button class="add-team-btn" onclick="addNewTeam()">+ Add New Team</button>
+      </div>
+      <div id="teamsControlList"></div>
+    </div>
+  </div>
+
+  <div class="winner-modal" id="winnerModal">
+    <div class="winner-card">
+      <p style="color: var(--accent-color); letter-spacing: 3px; font-size: 0.85rem; text-transform: uppercase;">Selected Winner Team</p>
+      <img id="winnerLogo" class="winner-logo" src="" alt="Team Logo" />
+      <h2 class="winner-title" id="winnerName">TEAM NAME</h2>
+      <button class="close-modal-btn" onclick="closeModal()">CONFIRM & CONTINUE</button>
     </div>
   </div>
 
   <script>
-    const canvas = document.getElementById("wheel");
-    const ctx = canvas.getContext("2d");
-    
-    let currentRotation = 0;
-    let isSpinning = false;
-    let presetQueue = [];
-    
-    const colors = ["#ff6b6b", "#4ecdc4", "#ffe66d", "#1dd1a1", "#54a0ff", "#5f27cd", "#ff9ff3"];
+    let teamsData = [
+      { id: 1, name: "ESPERENZA", color: "#1e293b", font: "'Montserrat', sans-serif", enabled: true, logo: "", audio: null },
+      { id: 2, name: "LUMINOSA", color: "#334155", font: "'Montserrat', sans-serif", enabled: true, logo: "", audio: null },
+      { id: 3, name: "GLORIOSA", color: "#0f172a", font: "'Montserrat', sans-serif", enabled: true, logo: "", audio: null },
+      { id: 4, name: "VITORIA", color: "#1e1b4b", font: "'Montserrat', sans-serif", enabled: true, logo: "", audio: null },
+      { id: 5, name: "VALERIA", color: "#31103f", font: "'Montserrat', sans-serif", enabled: true, logo: "", audio: null }
+    ];
 
-    function getTeams() {
-      return document.getElementById("teams").value.split(",").map(t => t.trim()).filter(t => t);
+    let isCommitteeUnlocked = false;
+    let selectedWinnerId = null;
+    let isSpinning = false;
+    let currentSpinCount = 0;
+
+    const canvas = document.getElementById('wheel');
+    const ctx = canvas.getContext('2d');
+    
+    let startAngle = 0;
+    let arc = 0;
+    let spinTimeout = null;
+    let spinAngleStart = 0;
+    let spinTime = 0;
+    let spinTimeTotal = 0;
+
+    // Filter active teams (Enabled + Name not empty)
+    function getActiveTeams() {
+      return teamsData.filter(t => t.enabled && t.name.trim() !== "");
+    }
+
+    function updateForcedWinnerDropdowns() {
+      const selects = ['winner1Select', 'winner2Select', 'winner3Select'];
+      const activeTeams = getActiveTeams();
+
+      selects.forEach(selectId => {
+        const select = document.getElementById(selectId);
+        const currentVal = select.value;
+        
+        select.innerHTML = `<option value="none">-- Select Winner --</option>`;
+        
+        activeTeams.forEach(team => {
+          const opt = document.createElement('option');
+          opt.value = team.id;
+          opt.innerText = team.name;
+          select.appendChild(opt);
+        });
+
+        select.value = currentVal;
+      });
     }
 
     function drawWheel() {
-      const teams = getTeams();
-      const numSlices = teams.length;
-      if (numSlices === 0) return;
+      const activeTeams = getActiveTeams();
+      ctx.clearRect(0, 0, 480, 480);
 
-      const sliceAngle = (2 * Math.PI) / numSlices;
-      const radius = canvas.width / 2;
+      if (activeTeams.length === 0) {
+        ctx.fillStyle = "#d4af37";
+        ctx.font = "16px 'Montserrat', sans-serif";
+        ctx.fillText("No Active Teams", 170, 240);
+        return;
+      }
 
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      arc = (2 * Math.PI) / activeTeams.length;
+      const outsideRadius = 220;
+      const textRadius = 150;
+      const insideRadius = 60;
 
-      for (let i = 0; i < numSlices; i++) {
-        const startAngle = i * sliceAngle;
-        const endAngle = startAngle + sliceAngle;
+      for (let i = 0; i < activeTeams.length; i++) {
+        const angle = startAngle + i * arc;
+        const team = activeTeams[i];
+        
+        ctx.fillStyle = team.color;
 
         ctx.beginPath();
-        ctx.moveTo(radius, radius);
-        ctx.arc(radius, radius, radius, startAngle, endAngle);
-        ctx.fillStyle = colors[i % colors.length];
-        ctx.fill();
+        ctx.arc(240, 240, outsideRadius, angle, angle + arc, false);
+        ctx.arc(240, 240, insideRadius, angle + arc, angle, true);
+        ctx.strokeStyle = "rgba(212, 175, 55, 0.35)";
+        ctx.lineWidth = 2;
         ctx.stroke();
+        ctx.fill();
 
-        // Draw Team Labels
         ctx.save();
-        ctx.translate(radius, radius);
-        ctx.rotate(startAngle + sliceAngle / 2);
-        ctx.textAlign = "right";
-        ctx.fillStyle = "#fff";
-        ctx.font = "bold 16px Arial";
-        ctx.fillText(teams[i], radius - 20, 5);
+        ctx.fillStyle = "#d4af37";
+        ctx.font = `700 15px ${team.font}`;
+        ctx.translate(240 + Math.cos(angle + arc / 2) * textRadius, 
+                      240 + Math.sin(angle + arc / 2) * textRadius);
+        ctx.rotate(angle + arc / 2 + Math.PI / 2);
+        const text = team.name;
+        ctx.fillText(text, -ctx.measureText(text).width / 2, 0);
         ctx.restore();
       }
     }
 
-    // Load presets when changed
-    function updatePresets() {
-      const presetInput = document.getElementById("preset").value;
-      presetQueue = presetInput.split(",").map(s => s.trim()).filter(s => s);
+    function rotateWheel() {
+      spinTime += 30;
+      if (spinTime >= spinTimeTotal) {
+        stopRotateWheel();
+        return;
+      }
+      const spinAngle = spinAngleStart - easeOut(spinTime, 0, spinAngleStart, spinTimeTotal);
+      startAngle += (spinAngle * Math.PI / 180);
+      drawWheel();
+
+      spinTimeout = setTimeout(rotateWheel, 20);
     }
 
-    document.getElementById("preset").addEventListener("change", updatePresets);
-    document.getElementById("teams").addEventListener("input", drawWheel);
+    function stopRotateWheel() {
+      clearTimeout(spinTimeout);
+      isSpinning = false;
+      document.getElementById('spinBtn').disabled = false;
 
-    function spinWheel() {
+      const activeTeams = getActiveTeams();
+      
+      let degrees = (startAngle * 180 / Math.PI) % 360;
+      if (degrees < 0) degrees += 360;
+
+      const arcd = (arc * 180 / Math.PI);
+      let index = Math.floor((270 - degrees + 360) % 360 / arcd);
+      
+      const winner = activeTeams[index];
+      selectedWinnerId = winner.id;
+
+      document.getElementById('winnerName').innerText = winner.name;
+      document.getElementById('winnerName').style.fontFamily = winner.font;
+      
+      const logoImg = document.getElementById('winnerLogo');
+      if (winner.logo) {
+        logoImg.src = winner.logo;
+        logoImg.style.display = 'block';
+      } else {
+        logoImg.style.display = 'none';
+      }
+
+      document.getElementById('winnerModal').style.display = 'flex';
+
+      if (winner.audio) {
+        const audio = new Audio(winner.audio);
+        audio.play();
+      }
+
+      triggerGrandPopper();
+    }
+
+    function triggerGrandPopper() {
+      const count = 250;
+      const defaults = { origin: { y: 0.6 } };
+
+      function fire(particleRatio, opts) {
+        confetti(Object.assign({}, defaults, opts, {
+          particleCount: Math.floor(count * particleRatio)
+        }));
+      }
+
+      fire(0.25, { spread: 35, startVelocity: 60, colors: ['#d4af37', '#ffffff'] });
+      fire(0.2, { spread: 70, colors: ['#ff0055', '#00e5ff'] });
+      fire(0.35, { spread: 110, decay: 0.91, scalar: 0.9 });
+      fire(0.1, { spread: 130, startVelocity: 30, decay: 0.92, scalar: 1.2 });
+      fire(0.1, { spread: 130, startVelocity: 50 });
+    }
+
+    function easeOut(t, b, c, d) {
+      const ts = (t /= d) * t;
+      const tc = ts * t;
+      return b + c * (tc + -3 * ts + 3 * t);
+    }
+
+    function spin() {
       if (isSpinning) return;
 
-      const teams = getTeams();
-      if (teams.length < 2) {
-        alert("At least 2 teams required!");
+      const activeTeams = getActiveTeams();
+
+      if (activeTeams.length === 0) {
+        alert("No active teams available on the wheel!");
         return;
       }
 
-      updatePresets();
-
-      let targetIndex = -1;
-
-      // Check if preset queue has an item
-      if (presetQueue.length > 0) {
-        const targetTeam = presetQueue.shift(); // Pick first in queue
-        // Update input box to show remaining
-        document.getElementById("preset").value = presetQueue.join(", ");
-        
-        targetIndex = teams.findIndex(t => t.toLowerCase() === targetTeam.toLowerCase());
-      }
-
-      // If no valid preset target found, pick random
-      if (targetIndex === -1) {
-        targetIndex = Math.floor(Math.random() * teams.length);
-      }
-
-      // Calculate Target Angle
-      const sliceDeg = 360 / teams.length;
-      const targetMidDeg = (targetIndex + 0.5) * sliceDeg;
-      
-      // Top position is 270 degrees in standard coordinate canvas
-      let targetRotation = 270 - targetMidDeg;
-      if (targetRotation < 0) targetRotation += 360;
-
-      // Add full spin turns (e.g. 5 spins = 1800 deg)
-      const totalDegrees = 360 * 5 + targetRotation;
-      
-      // Ensure smooth continuous rotation accumulate
-      const finalAngle = currentRotation + (totalDegrees - (currentRotation % 360));
-
       isSpinning = true;
-      document.getElementById("result").innerText = "Spinning...";
+      document.getElementById('spinBtn').disabled = true;
 
-      // CSS Transition for spinning animation
-      canvas.style.transition = "transform 4s cubic-bezier(0.15, 0.9, 0.25, 1)";
-      canvas.style.transform = `rotate(${finalAngle}deg)`;
+      currentSpinCount++;
 
-      currentRotation = finalAngle;
+      let chosenWinner = null;
+      let targetWinnerId = "none";
 
-      setTimeout(() => {
-        isSpinning = false;
-        document.getElementById("result").innerText = `🎉 Winner: ${teams[targetIndex]}!`;
-      }, 4000);
+      if (currentSpinCount === 1) {
+        targetWinnerId = document.getElementById('winner1Select').value;
+      } else if (currentSpinCount === 2) {
+        targetWinnerId = document.getElementById('winner2Select').value;
+      } else if (currentSpinCount === 3) {
+        targetWinnerId = document.getElementById('winner3Select').value;
+      }
+
+      // Exact String vs Number comparison fixed using String()
+      if (targetWinnerId !== "none") {
+        chosenWinner = activeTeams.find(t => String(t.id) === String(targetWinnerId));
+      } 
+      
+      // Fallback: Pick random active team
+      if (!chosenWinner) {
+        chosenWinner = activeTeams[Math.floor(Math.random() * activeTeams.length)];
+      }
+      
+      const winnerIndex = activeTeams.findIndex(t => t.id === chosenWinner.id);
+
+      const segmentAngle = 360 / activeTeams.length;
+      const targetMiddle = (winnerIndex * segmentAngle) + (segmentAngle / 2);
+      
+      let targetDegrees = 270 - targetMiddle;
+      while (targetDegrees < 0) targetDegrees += 360;
+
+      let currentDegrees = (startAngle * 180 / Math.PI) % 360;
+      if (currentDegrees < 0) currentDegrees += 360;
+
+      let deltaDegrees = targetDegrees - currentDegrees;
+      while (deltaDegrees < 0) deltaDegrees += 360;
+
+      const extraRounds = 360 * 12; 
+      const totalRotationNeeded = extraRounds + deltaDegrees;
+
+      spinAngleStart = (totalRotationNeeded / 100) * 2;
+      spinTime = 0;
+      spinTimeTotal = 5500;
+      
+      rotateWheel();
     }
 
-    // Initial Render
+    function closeModal() {
+      document.getElementById('winnerModal').style.display = 'none';
+      
+      const autoRemove = document.getElementById('autoRemoveCheck').checked;
+      if (autoRemove && selectedWinnerId !== null) {
+        const team = teamsData.find(t => t.id === selectedWinnerId);
+        if (team) {
+          team.enabled = false; // Disable team (Removes from wheel & active lists)
+        }
+        selectedWinnerId = null;
+        
+        drawWheel();
+        updateForcedWinnerDropdowns();
+        
+        if (isCommitteeUnlocked) {
+          renderCommitteeList();
+        }
+      }
+    }
+
+    function toggleCommitteePortal() {
+      if (!isCommitteeUnlocked) {
+        const pass = prompt("Enter Committee Password:");
+        if (pass === "spincommittiee") {
+          isCommitteeUnlocked = true;
+          document.getElementById('committeePanel').style.display = 'block';
+          updateForcedWinnerDropdowns();
+          renderCommitteeList();
+        } else if (pass !== null) {
+          alert("Incorrect Password!");
+        }
+      } else {
+        const panel = document.getElementById('committeePanel');
+        panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+      }
+    }
+
+    function toggleFullScreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => {
+          alert(`Full Screen error: ${err.message}`);
+        });
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        }
+      }
+    }
+
+    function updateBranding() {
+      const title = document.getElementById('festNameInput').value;
+      const titleFont = document.getElementById('festFontSelect').value;
+      const titleColor = document.getElementById('festColorInput').value;
+
+      const tag = document.getElementById('festTagInput').value;
+      const tagFont = document.getElementById('tagFontSelect').value;
+      const tagColor = document.getElementById('tagColorInput').value;
+
+      const titleDisp = document.getElementById('festTitleDisplay');
+      titleDisp.innerText = title;
+      titleDisp.style.fontFamily = titleFont;
+      titleDisp.style.color = titleColor;
+
+      const tagDisp = document.getElementById('festTaglineDisplay');
+      tagDisp.innerText = tag;
+      tagDisp.style.fontFamily = tagFont;
+      tagDisp.style.color = tagColor;
+    }
+
+    function renderCommitteeList() {
+      const container = document.getElementById('teamsControlList');
+      container.innerHTML = '';
+
+      teamsData.forEach((team) => {
+        const row = document.createElement('div');
+        row.className = 'team-item';
+        row.innerHTML = `
+          <input type="checkbox" ${team.enabled ? 'checked' : ''} onchange="toggleTeam(${team.id})">
+          <input type="text" value="${team.name}" oninput="updateTeamName(${team.id}, this.value)" placeholder="Team Name">
+          <input type="color" value="${team.color}" onchange="updateTeamColor(${team.id}, this.value)">
+          <select onchange="updateTeamFont(${team.id}, this.value)">
+            <option value="'Montserrat', sans-serif" ${team.font.includes('Montserrat') ? 'selected':''}>Montserrat</option>
+            <option value="'Cinzel', serif" ${team.font.includes('Cinzel') ? 'selected':''}>Cinzel</option>
+            <option value="'Bebas Neue', sans-serif" ${team.font.includes('Bebas') ? 'selected':''}>Bebas Neue</option>
+            <option value="'Playfair Display', serif" ${team.font.includes('Playfair') ? 'selected':''}>Playfair</option>
+          </select>
+          <div class="control-group">
+            <label>Logo PNG</label>
+            <input type="file" accept="image/png, image/jpeg" onchange="uploadLogo(${team.id}, event)">
+          </div>
+          <div class="control-group">
+            <label>Custom Announce MP3</label>
+            <input type="file" accept="audio/*" onchange="uploadAudio(${team.id}, event)">
+          </div>
+          <button class="delete-btn" onclick="deleteTeam(${team.id})">🗑️</button>
+        `;
+        container.appendChild(row);
+      });
+    }
+
+    function toggleTeam(id) {
+      const team = teamsData.find(t => t.id === id);
+      if (team) {
+        team.enabled = !team.enabled;
+        drawWheel();
+        updateForcedWinnerDropdowns();
+      }
+    }
+
+    function updateTeamName(id, val) {
+      const team = teamsData.find(t => t.id === id);
+      if (team) team.name = val;
+      drawWheel();
+      updateForcedWinnerDropdowns();
+    }
+
+    function updateTeamColor(id, val) {
+      const team = teamsData.find(t => t.id === id);
+      if (team) team.color = val;
+      drawWheel();
+    }
+
+    function updateTeamFont(id, val) {
+      const team = teamsData.find(t => t.id === id);
+      if (team) team.font = val;
+      drawWheel();
+    }
+
+    function addNewTeam() {
+      const newId = teamsData.length > 0 ? Math.max(...teamsData.map(t => t.id)) + 1 : 1;
+      teamsData.push({
+        id: newId,
+        name: `NEW TEAM ${newId}`,
+        color: "#0f172a",
+        font: "'Montserrat', sans-serif",
+        enabled: true,
+        logo: "",
+        audio: null
+      });
+      renderCommitteeList();
+      drawWheel();
+      updateForcedWinnerDropdowns();
+    }
+
+    function deleteTeam(id) {
+      if (confirm("Are you sure you want to delete this team?")) {
+        teamsData = teamsData.filter(t => t.id !== id);
+        renderCommitteeList();
+        drawWheel();
+        updateForcedWinnerDropdowns();
+      }
+    }
+
+    function uploadLogo(id, event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const team = teamsData.find(t => t.id === id);
+          if (team) team.logo = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function uploadAudio(id, event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const team = teamsData.find(t => t.id === id);
+          if (team) team.audio = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function uploadCornerLogo(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const img = document.getElementById('cornerLogoImg');
+          img.src = e.target.result;
+          img.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function uploadCenterLogo(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const img = document.getElementById('wheelCenterLogoImg');
+          img.src = e.target.result;
+          img.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
     drawWheel();
+    updateForcedWinnerDropdowns();
   </script>
 </body>
 </html>
